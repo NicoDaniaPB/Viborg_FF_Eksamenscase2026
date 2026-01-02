@@ -1,194 +1,149 @@
-#> Kør kun installation hvis du ikke allerede har installeret devtools
-#>indlæs pakken fra github ved hjælp af "devtools"
-
+#> Transferdata har været meget svære at få fingrene i,
+#> da de fleste sider med data på området er utilgængelige for os.
+#> Vi har derfor fundet et open-source-projekt, skabt af en eller flere privatpersoner,
+#> som gør det lettere at hente fodbolddata i R.
+#> Pakken hedder worldfootballR. Link til GitHub:
+#> https://github.com/JaseZiv/worldfootballR
+#>
+#> Pakken blev den 18. september 2025 arkiveret og bliver ikke længere vedligeholdt.
+#> Det kan give udfordringer i forhold til reproducerbarhed fremadrettet.
+#> Hvis det viser sig, at transferdata har en signifikant betydning for antallet
+#> af tilskuere til VFF's hjemmekampe, er antagelsen dog, at VFF selv har adgang
+#> til deres interne transferdata. Disse data har vi dog ikke adgang til på nuværende tidspunkt.
+#>
+#> Kør installationen herunder, hvis du ikke allerede har installeret devtools.
+#> devtools::install_github() bruges til at installere R-pakker direkte fra GitHub.
 install.packages("devtools")
-devtools::install_github("JaseZiv/worldfootballR")
 
-# Indlæsning af nødvendige pakker
+#> worldfootballR indeholder blandt andet transferdata fra Transfermarkt
+#> (en af verdens største offentligt tilgængelige databaser for spillertransfers),
+#> som ikke kan webscrapes direkte. Derfor benyttes denne metode i stedet.
+#> Argumentet force = TRUE betyder, at pakken geninstalleres,
+#> selv hvis den allerede er installeret i samme version.
+devtools::install_github("JaseZiv/worldfootballR", force = TRUE)
+#> Hvis R spørger om opdatering af afhængige pakker, vælges 3 for "None",
+#> så eksisterende pakker ikke opdateres, da det ikke er nødvendigt.
+
+
+# Indlæsning af nødvendige pakker.
 pacman::p_load(worldfootballR, tidyverse, janitor)
 
-# Mappen til at gemme data i.
+# Mappe til data. Hvis den ikke eksistere, så bliver den oprettet.
 if (!dir.exists("VFFdata")) dir.create("VFFdata")
 
-## indhent holdets Transfermarkt URL som vi indhenter data fra.
-tm_league_team_urls(country_name = "Denmark", start_year = 2002)
+#> Indlæser datasæt med Viborgs hjemmekampe i Superligaen, som blandt andet indeholder 
+#> informationer om hvilke sæsoner de har været i Superligaen, som skal bruges til at 
+#> hente transferdata fra de korrekte år.
+vff_hjemmekampe <- readRDS("VFFdata/superstatsvff.rds")
+sæsoner <- vff_hjemmekampe |>
+  distinct(sæson) |>          # distinct(sæson) sikrer, at hver sæson kun optræder en gang.
+  pull(sæson)                 # pull(sæson) konverterer kolonnen til en vektor.
 
-# Indhent transfer info på sæson niveau.
-## det tager lidt tid da der er begrænset adgang.
+#> Når der hentes data fra Transfermarkt, identificeres sæsoner ved den pågældende sæsons startår.
+#>  substr(1, 4) udtrækker de første fire tegn i sæson strengen, f.eks. 2002 fra 2002/2003 osv.
+#>  as.integer() konverterer værdien fra tekst til en numerisk værdi for årstallet.
+år <- sæsoner |>
+  substr(1, 4) |>
+  as.integer()
 
-Viborg_2002 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2002", transfer_window = "all" )
-Viborg_2003 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2003", transfer_window = "all" )
-Viborg_2004 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2004", transfer_window = "all" )
-Viborg_2005 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2005", transfer_window = "all" )
-Viborg_2006 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2006", transfer_window = "all" )
-Viborg_2007 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2007", transfer_window = "all" )
-Viborg_2008 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2008", transfer_window = "all" )
-Viborg_2009 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2009", transfer_window = "all" )
-Viborg_2010 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2010", transfer_window = "all" )
-Viborg_2011 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2011", transfer_window = "all" )
-Viborg_2012 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2012", transfer_window = "all" )
-Viborg_2013 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2013", transfer_window = "all" )
-Viborg_2014 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2014", transfer_window = "all" )
-Viborg_2015 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2015", transfer_window = "all" )
-Viborg_2016 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2016", transfer_window = "all" )
-Viborg_2017 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2017", transfer_window = "all" )
-Viborg_2018 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2018", transfer_window = "all" )
-Viborg_2019 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2019", transfer_window = "all" )
-Viborg_2020 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2020", transfer_window = "all" )
-Viborg_2021 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2021", transfer_window = "all" )
-Viborg_2022 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2022", transfer_window = "all" )
-Viborg_2023 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2023", transfer_window = "all" )
-Viborg_2024 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2024", transfer_window = "all" )
-Viborg_2025 <- tm_team_transfers(team_url = "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/2025", transfer_window = "all" )
+#> fjerner år før 2002, da det er fra dette år og frem vi ser på VFF's kampe.
+år <- år[år >= 2002]
 
-# Her kan vi se alle transfervinduer på årsbasis enkeltvist - indsæt blot år du ønsker at se, eks. 2002.
+#> Opretter en tom liste.
+#> Listen udvides løbende i loopet, hvor hvert element
+#> bliver en dataframe med transferdata for hver sæson.
+list_of_transfers <- list()
 
-view(Viborg_2002)
+#> Gennemløber alle startår og henter transferdata fra Transfermarkt.
+#> seq_along(år) opretter en sekvens fra 1 til længden af vektoren år.
+#> For loopet kører derfor en gang for hvert år i vektoren år.
+for (i in seq_along(år)) {
+  # Henter et startår ad gangen fra vektoren år.
+  y <- år[i]
+  #> Opbygger URL til Viborg FF's Transfermarkt-side for den givne sæson.
+  #> paste0 sammensætter året og URL'en uden mellemrum til en samlet streng.
+  url <- paste0("https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/", y)
+  #> Henter alle transfers (sommer + vinter) for den pågældende sæson.
+  #> og gemmer resultatet i listen, som f.eks. Viborg_2002.
+  #> tm_team_transfers() henter alle spillertransfers for VFF.
+  list_of_transfers[[paste0("Viborg_", y)]] <- tm_team_transfers(
+    team_url = url,                 # team_url angiver URL’en til holdets Transfermarkt side.
+    transfer_window = "all")        # transfer_window = "all" betyder, at både sommer og vintertransfers hentes.
+  # Udskriver status i konsollen, så kan man se når data er hentet..
+  cat("Henter data fra året:", y, "\n")
+}
 
-# Nu samler vi alle de enkeltvise transfer data sæt i en samlet liste og en samlet dataframe.
+#> Kombinerer alle lister til en samlet dataframe.
+#> bind_rows() binder alle tabellerne sammen under hinanden og laver et stort datasæt i en tibble.
+total_transfers <- bind_rows(list_of_transfers)
 
-# Liste med alle data frames ovenfor.
-list_of_transfers <- list(Viborg_2002, Viborg_2003, Viborg_2004, Viborg_2005,
-                          Viborg_2006, Viborg_2007, Viborg_2008, Viborg_2009, 
-                          Viborg_2010, Viborg_2011, Viborg_2012, Viborg_2013, 
-                          Viborg_2014, Viborg_2015, Viborg_2016, Viborg_2017, 
-                          Viborg_2018, Viborg_2019, Viborg_2020, Viborg_2021, 
-                          Viborg_2022, Viborg_2023, Viborg_2024, Viborg_2025)
+#> Fjern kolonner der ikke skal bruges.
+#> Med select og - foran de kolonner der ikke skal bruges, så de fravælges.
+#> dplyr:: er benytet da nogen får fejl ved select uden  dplyr:: foran,
+#> da andre pakker i R har en select funktion. 
+total_transfers <- total_transfers |>
+  dplyr::select(-team_name, -league, -country, -player_url, -player_position,
+                -player_age, -player_nationality, -club_2, -league_2,
+                -country_2, -in_squad, -appearances, -goals,
+                -minutes_played, -transfer_notes)
 
-# Alle års transferdata samles i en data frame:
+# Gør kolonnenavne konsistente og nemme at arbejde med i R med janitor pakken.
+# clean_names() omdanner f.eks. Transfer Fee til transfer_fee.
+total_transfers_clean <- total_transfers |>
+  clean_names()                                # Renser kolonnenavnene med clean_names() fra janitor.
 
-total_transfers <- rbind.data.frame(Viborg_2002, Viborg_2003, Viborg_2004, Viborg_2005,
-                                    Viborg_2006, Viborg_2007, Viborg_2008, Viborg_2009, 
-                                    Viborg_2010, Viborg_2011, Viborg_2012, Viborg_2013, 
-                                    Viborg_2014, Viborg_2015, Viborg_2016, Viborg_2017, 
-                                    Viborg_2018, Viborg_2019, Viborg_2020, Viborg_2021, 
-                                    Viborg_2022, Viborg_2023, Viborg_2024, Viborg_2025)
+#> Sæson står lige nu som et enkelt årstal. Laves om til korrekt sæsonformat f.eks. fra 2025 til 2025/2026.
+#> Opretter en ny sæson kolonne med den nuværende ved hjælp af mutate, som bruger den oprindelige kolonne til at lave en ny.
+total_transfers_clean <- total_transfers_clean |>
+  #> Opretter sæsonformatet YYYY/YYYY+1 ud fra sæsonens startår.
+  #> Sammensættes med paste0 med / imellem start og slut år. + 1 giver korrekt slut år i sæson strengen.
+  #> as.numeric, som numerisk værdi. 
+  mutate(season_format = paste0( season, "/", as.numeric( season) + 1))  
 
-# Vi tjekker lige at alle data frames for sæsonerne er samlet
+#> Fjerner den oprindelige sæson kolonne med kun et enkelt årstal.
+#> Igen bruges select( med - foran den kolonne, som defor fravælges).
+total_transfers_clean <- total_transfers_clean |> 
+  dplyr::select(- season)
 
-View(list_of_transfers)
-View(total_transfers)
+#> Fjerner alle transfers der er registreret som lån.
+#> Ved at filtrere på kolonnen is_loan
+#> og kun beholde rækker hvor is_loan == FALSE.
+transfers <- total_transfers_clean |> 
+  filter(is_loan == FALSE)
 
-# nu fjerner (filtrerer) vi de sæsoner ud hvor Viborg FF ikke har været i superligaen
-# sæsoner der skal fjernes er: 08/09, 09/10, 11/12, 12/13, 14/15, 17/18, 18/19, 19/20, 20/21
+#> Fjerner observationer uden registreret transfersum
+#> ved at filtrere alle rækker fra hvor transfer_fee er NA.
+#> !is.na filtrerer rækker fra med manglende transfersum
+#> og beholder kun observationer med en transfer_fee.
+transfers <- transfers |> 
+  filter(!is.na(transfer_fee))
 
-# Sæsoner hvor Viborg IKKE var i Superligaen
-fjern_season_id <- c(2008, 2009, 2011, 2012, 2014, 2017, 2018, 2019, 2020)
-
-# Filtrer årene vi definerede ovenfor væk fra den samlede tabel
-total_transfers_clean <- total_transfers |> 
-  filter(!(season %in% fjern_season_id))
-
-# Tjek at årene er blevet fjernet
-View(total_transfers_clean)
-
-#her kontrollerer vi blot at sæsonerne faktisk matcher (ens output & indhold i vores dataframes)
-table(total_transfers$season)
-
-# Herefter fjerner vi de kolloner vi har trukket ud, som vi ikke skal bruge ved hjælp af subset metoden
-# det er følgende vi fjerner: 
-# Country, player_url, transfer_notes, league_2, country_2, in_squad, appearances, goals, minutes_played & Transfer_notes"
-
-total_transfers_clean_filtered <- subset(total_transfers_clean, select = -c(team_name, league, country, player_url, player_position,
-                                                                            player_age, player_nationality, club_2, league_2,
-                                                                            country_2, in_squad, appearances, goals, minutes_played, transfer_notes))
-
-### nu vi har filtreret alle variabler fra vi ikke skal bruge, 
-### omdøber vi "season" til "saeson" således det passer med andre 
-### webscraping data sæt vi har lavet.
-
-total_transfers_clean_filtered <- total_transfers_clean_filtered |> 
-  clean_names() |> rename(saeson = season)
-
-# her tjekker vi blot at ændringen er trådt i kraft og kolonnen har fået sit nye navn
-
-view(total_transfers_clean_filtered)
-
-### vi opretter ny kolonne med formattet YYYY / YYYY +1 som ønsket, så vi har 
-### årene på sæsonbasis, istedet for årstal for start af sæsonen
-
-total_transfers_clean_filtered <- total_transfers_clean_filtered |> 
-  mutate(season_format = paste0(saeson, "/", as.numeric(saeson) + 1))
-
-# nu fjerner vi de to kolonner vi ikke skal bruge da vi har det ønskede sæsonformat
-
-total_transfers_clean_filtered <- subset(total_transfers_clean_filtered, select = -c(saeson))
-
-# Vi tjekker lige at vi har fået fjernet "saeson" altså årstallet, så vi blot har sæson YYYY / YYYY istedet
-
-view(total_transfers_clean_filtered)
-
-## vi har nu de 6 kolonner som vi ønsker at beholde, i det korrekte format.
-## nu begynder vi at bearbejde data for at få transfers på sæsonniveau
-## nu filtrerer vi alle lånespillere fra vores transferoverblik
-
-transfers <- total_transfers_clean_filtered %>% filter(is_loan == FALSE)
-
-## Vi tjekker lige at vi har fået filtreret alle lånespillere fra
-
-View(transfers)
-
-## Nu skal vi have fjernet alle N/A værdier fra kolonnen "transfer_fee"
-
-transfers <- transfers |>  
-  filter(transfer_fee != "n/a")
-
-## Vi tjekker lige at vi har fået fjernet alle N/A værdier
-
-view(transfers)
-
-## vi skal nu definere at "arrivals" er udgifter
-## og at "departures" er indtægter
-
-## nu laver vi et samlet overblik over transferbalancer fra 2000/2001 sæsonen til og med 2025/2026 sæsonen
-
-total_all <- transfers |> 
-  mutate(
-    transfer_fee = as.numeric(transfer_fee)   # sikrer numeriske værdier
-  ) |> 
-  filter(season_format >= "2000/2001",
-         season_format <= "2025/2026") |> 
-  group_by(season_format) |> 
+# Beregner samlet transferøkonomi pr. sæson samt antallet af transfers.
+total_all <- transfers |>
+  # Grupperer data på sæson, så beregningerne foretages separat for hver sæson.
+  group_by(season_format) |>
+  # Opsummerer transferdata for hver sæson.
+  # Tager mange rækker pr. sæson og samler dem til en række pr. sæson.
   summarise(
-    total_income = sum(if_else(transfer_type == "Departures",
-                               transfer_fee, 0),
-                       na.rm = TRUE),
-    
-    total_expense = sum(if_else(transfer_type == "Arrivals",
-                                transfer_fee, 0),
-                        na.rm = TRUE),
-    
-    net_balance = total_income - total_expense
-  ) |> 
-  arrange(season_format)
-
-### Nu tilføjer vi en kolonne med "antal transfers i sæsonen"
-### DET BURDE IKKE PÅVIRKE RESULTATET AF NEDENSTÅENDE, om man fjerne N/A værdier eller ej.
-
-total_all_2 <- transfers |> 
-  mutate(
-    transfer_fee = as.numeric(transfer_fee)   # sikrer numeriske værdier
-  ) |> 
-  filter(season_format >= "2000/2001",
-         season_format <= "2025/2026") |> 
-  group_by(season_format) |> 
-  summarise(
-    total_income = sum(if_else(transfer_type == "Departures",
-                               transfer_fee, 0), na.rm = TRUE),
-    
-    total_expense = sum(if_else(transfer_type == "Arrivals",
-                                transfer_fee, 0), na.rm = TRUE),
-    
+    #> Beregner samlede transferindtægter pr. sæson.
+    #> Udvælger kun transfers hvor transfer_type er "Departures" som er spiller afgange. 
+    #> og summerer transfer_fee for dem. 
+    total_income = sum(transfer_fee[transfer_type == "Departures"]),
+    #> Beregner samlede transferudgifter for sæsonen (spillerkøb).
+    #> Samme koncept som før. Bare med spiller tilgange (Arrivals)
+    total_expense = sum(transfer_fee[transfer_type == "Arrivals"]),
+    # Nettobalance beregnes som indtægter minus udgifter.
     net_balance = total_income - total_expense,
-    
-    antal_transfers = n()    # NY KOLONNE: tæller alle transfers pr. sæson
-  ) |> 
-  arrange(season_format)
+    #> Antal transfers i sæsonen (både køb og salg).
+    #> Tæller antallet af observationer for hver sæson.
+    #> n() svarer til det samlede antal transfers i sæsonen.
+    antal_transfers = n()) |> 
+  #> Fjerner gruppering efter summarise.
+  #> Så datasættet igen behandles som et almindeligt ugrupperet datasæt.
+  ungroup() |> 
+  #> Sorterer sæsonerne i faldende rækkefølge (nyeste først).
+  #> arrange(desc) sørger for at arrangere i faldende rækkefølge.
+  arrange(desc(season_format))
 
-### Vi har nu indsamlet og behandlet alt ønsket data, så vi har det output vi ønsker at kunne binde sammen
-### med vores resterende data indsamling
-
-### vi gemmer nu vores færdigbehandlede tabel:
-saveRDS(total_all_2, "VFFdata/TransfermarktData.rds")
-
-
+# Gemmer transfer data for VFF, som en RDS-fil. 
+saveRDS(total_all, "VFFdata/TransfermarktData.rds")
