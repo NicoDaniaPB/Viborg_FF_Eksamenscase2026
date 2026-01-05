@@ -105,7 +105,7 @@ Desuden er det reproducerbart og man slipper for at definere en vektor med år m
 html_superstats <- read_html("https://superstats.dk/hold/alltime?id=11&utm", encoding = "UTF-8") 
 ```
 
-Finder alle <table>-elementer på siden med html_elements. 
+Finder alle table-elementer på siden med html_elements. 
 ```{r}
 tables_sæsoner <- html_superstats |> html_elements("table")  
 ```
@@ -113,7 +113,7 @@ tables_sæsoner <- html_superstats |> html_elements("table")
 map() anvender her funktionen html_table på hver tabel i tables_sæsoner.
 Det giver en liste af dataframes, en for hver html-tabel på siden.
 ```{r}
-map(tables_sæsoner, html_table)
+tables_df <- map(tables_sæsoner, html_table)
 ```
 
 Det er tabel 3 der er den rigtige tabel, som indeholder de sæsoner VFF er i Superligaen. [[3]] trækker det tredje element ud af listen.
