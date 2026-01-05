@@ -199,6 +199,11 @@ Gemmer data
 # Gemmer data i en RDS-fil i data mappen.
 saveRDS(kampliste_samlede, "VFFdata/superstatsliste.rds")
 ```
+
+Indlæs data igen fra RDS-filen. Alle andre steps før nu kan udkommenteres. 
+```{r}
+gemt_kampliste <- readRDS("VFFdata/superstatsliste.rds")
+```
 Konverterer til dataframe. Kombinerer alle lister til en samlet dataframe. bind_rows() binder alle tabellerne sammen under hinanden og laver et stort datasæt i en tibble.
 ```{r}
 kampe_df <- gemt_kampliste |> 
