@@ -182,6 +182,7 @@ Looper gennem alle kampdatoer en ad gangen og henter DMI data.
 Seq_along(kamp_datoer) laver en sekvens af 1, 2, 3, osv. 
 I bliver derfor hvert enkelt kampnummer i rækkefølgen. 
 ```{r}
+#| message: false
 for (i in seq_along(kamp_datoer)) {
   dato_format <- format(kamp_datoer[i], "%Y-%m-%dT%H:%M:%SZ")
   #> URL-koder datoen så den kan bruges i API-kaldet.
