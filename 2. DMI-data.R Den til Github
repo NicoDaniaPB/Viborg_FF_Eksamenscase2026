@@ -168,3 +168,4 @@ dmi_df <- readRDS("VFFdata/dmi.rds")
 
 #Vi ser tabellen 
 view(dmi_df) 
+
