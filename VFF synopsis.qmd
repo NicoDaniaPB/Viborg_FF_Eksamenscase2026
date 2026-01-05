@@ -188,7 +188,8 @@ for (y in VFF_sæsoner) {
   #> Tilføjer en sæson-kolonne til hver tabel i listen.
   #> lapply() = løber alle tabeller igennem en ad gangen.
   #> hver_tabel_i_listen = betyder bare den aktuelle tabel.
-  #> Sæson skal f.eks. være 2023/2024 når y = 2024 derfor paste0(y-1, "/", y). Paste0 sætter sæsonerne sammen f.eks. "2024/2025".
+  #> Sæson skal f.eks. være 2023/2024 når y = 2024 derfor paste0(y-1, "/", y). 
+  #> Paste0 sætter sæsonerne sammen f.eks. "2024/2025".
   #> function(hver_tabel_i_listen) { ... } er en funktion,
   #> som modtager et element ad gangen (en tabel).
   kampliste_valgte <- lapply(kampliste_valgte, function(hver_tabel_i_listen) {
@@ -242,7 +243,8 @@ kampe_df <- kampe_df |>
   mutate(runde = str_extract(find_runde, "\\d+") |> as.integer()) |> 
   
   #> Fjerner rækker der selv er runde-overskrifter:
-  #> str_detect(X1, "^Runde") finder rækker hvor kolonnen X1 starter med ordet "Runde" man kunne også have valgt X2.
+  #> str_detect(X1, "^Runde") finder rækker hvor kolonnen X1 starter med ordet "Runde" 
+  #> man kunne også have valgt X2.
   #> ! foran betyder ikke, så filter(!str_detect) bevarer alle rækker,
   #> undtagen rækkerne med "Runde 1", "Runde 2", osv.
   #> 1 Runde 1 Runde 1     ""        ""    ""       ""                      ""    2025/2026
@@ -262,7 +264,8 @@ kampe_df <- kampe_df |>
   # # Fjerner kolonnen X7, kolonnen indeholdte TV-logoer i billedformat på hjemmesiden.
   #> select(-...) svarer til at fravælge.
   select(-X7) |>
-  #> Beholder kun rækker hvor kolonnen X5 indeholder et tal (tilskuertallet) viser at kampen er spillet.
+  #> Beholder kun rækker hvor kolonnen X5 indeholder et tal (tilskuertallet) 
+  #> viser at kampen er spillet.
   #> Regex-forklaring: ^ = start af teksten.
   #> [0-9\\.]+ = en eller flere cifre og eller punktum.
   #> $ = slut af teksten.
