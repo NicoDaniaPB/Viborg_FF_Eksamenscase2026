@@ -2,16 +2,20 @@ pacman::p_load("tidyverse", "rvest", "stringr", "janitor", "lubridate", "RSQLite
 
 # DMI-API -----------------------------------------------------------------
 
-# Indlæser Superstatsdata, da kampdatoerne skal bruges til at hente vejrdata.
+# Vi starter med at indlæse Superstatsdata, da kampdatoerne skal bruges til at hente vejrdata.
 vff_hjemmekampe <- read_rds("VFFdata/superstatsvff.rds")
 
-# Hvis der findes en .Renviron-fil, så læses den ind her.
+# Når man har en .Renviron-fil, så indlæses den her:
 if (file.exists(".Renviron")) readRenviron(".Renviron")
+
+#En .Renviron-fil bruges til, at R automatisk kan læse værdier (feks. API-nøgler), selvom de ikke er synlige i selve koden.
+
 
 #> Sys.getenv() bruges i R til at hente oplysninger gemt i f.eks. .Renviron.
 #> Nøglen er døbt MY_API_KEY i .Renviron og derfor den der hentes.
 #> Den returerner i dette tilfælde en API-nøgle til DMI, da det er den der er gemt i filen. 
 api_nøgle <- Sys.getenv("MY_API_KEY")
+
 
 #> Kampdatoerne for VFF's hjemmekampe gemmes i kamp_datoer.
 #> Skal bruges i et loop, så der kun kommer vejrobservationer fra DMI på kampdage.
@@ -29,10 +33,10 @@ for (i in seq_along(kamp_datoer)) {
   dato_format <- format(kamp_datoer[i], "%Y-%m-%dT%H:%M:%SZ")
   #> URL-koder datoen så den kan bruges i API-kaldet.
   #> URLencode() oversætter tegn som specialtegn.
-  #> F.eks. bliver 2023-07-12 19:00 til "2023-07-12%2019%3A00".så datoerne de kan bruges i URL'en.
+  #> F.eks. bliver 2023-07-12 19:00 til "2023-07-12%2019%3A00".så datoerne kan anvendes i URL'en.
   dato_encode <- URLencode(dato_format)
   #> Bygger URL'en der henter temperatur og vind for kampen index i. Alle kampe. 
-  #> paste0() sætter tekst sammen uden mellemrum
+  #> paste0() sætter tekst sammen uden mellemrum 
   url_temp_vind <- paste0(
     "https://dmigw.govcloud.dk/v2/metObs/collections/observation/items?",
     "stationId=06060",                 
@@ -40,7 +44,7 @@ for (i in seq_along(kamp_datoer)) {
     "&api-key=", "d074f877-5fe5-44d1-a473-21a6be80a0c2")
   #> Henter DMI’s data for kampene.
   #> httr::GET() sender en HTTP-forespørgsel af typen GET.
-  #> Det betyder, at serveren bliver bedt om at sende data fra det angivne URL.
+  #> Det betyder, at serveren bliver bedt om at sende data fra den angivne URL.
   api_kald <- httr::GET(url_temp_vind)
   #> httr::content() trækker indholdet ud som tekst.
   #> Læser API-svaret som ren JSON-tekst
@@ -79,12 +83,11 @@ dmi_df <- dmi_df |>
 #> group_by() grupperer data efter kamp og parameter = temperatur/vind.
 #> slice_max() vælger den senest obsaverede måling.
 #> ungroup() fjerner gruppering så df fungerer normalt igen.
-#> Ender med eb temperatur og en vindmåling per kamp. 
+#> Ender med en temperatur og en vindmåling per kamp. 
 dmi_df <- dmi_df |>
   group_by(kamp, parameterId) |>
   slice_max(observed) |>
-  ungroup()
-
+  ungroup() 
 
 dmi_df <- dmi_df |>
   #> select() vælger kun de kolonner, der skal bruges videre i tabellen.
@@ -142,7 +145,7 @@ nedbør7t <- sapply(kamp_datoer, nedbør_7t)
 # Tilføj nedbørsværdien til dmi_df ved at matche på kampnummer.
 dmi_df$nedbør_seneste_7_timer  <- nedbør7t[dmi_df$kamp]
 
-# Sorter tabellen, så de nyeste kampe kommer øverst = faldende rækkefølge.
+# Sorter tabellen efter dato, så de nyeste kampe kommer øverst = faldende rækkefølge.
 dmi_df <- dmi_df |>
   arrange(desc(kamp_dato))
 
@@ -160,6 +163,8 @@ dmi_df <- dmi_df |>
 
 saveRDS(dmi_df, "VFFdata/dmi.rds")
 
+#Vi indlæser data igen 
 dmi_df <- readRDS("VFFdata/dmi.rds")
 
-view(dmi_df)
+#Vi ser tabellen 
+view(dmi_df) 
