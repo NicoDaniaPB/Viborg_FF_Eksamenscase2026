@@ -880,6 +880,7 @@ Nøglen er døbt MY_API_KEY i .Renviron og derfor den der hentes.
 Den returerner i dette tilfælde en API-nøgle til DMI, da det er den der er gemt i filen.
 ```{r}
 api_nøgle <- Sys.getenv("MY_API_KEY")
+usethis::edit_r_environ()
 ```
 
 Kampdatoerne for VFF's hjemmekampe gemmes i kamp_datoer.
@@ -940,7 +941,6 @@ Resultatet bliver en ny liste (dmi_properties),
 hvor hvert element indeholder properties for en kamp.
 ```{r}
 dmi_properties <- lapply(dmi_list, function(x) x$features$properties)
-
 ```
 
 bind_rows() samler alle liste-elementer i en samlet data frame.
@@ -950,7 +950,7 @@ kamp = konverterer kamp-id til heltal as.integer.
 kamp_dato = henter korrekt kampdato med kampnummeret.
 ```{r}
 dmi_df <- bind_rows(dmi_properties, .id = "kamp") |>
-  mutate(kamp = as.integer(kamp), kamp_dato = kamp_datoer[kamp])
+  dplyr::mutate(kamp = as.integer(kamp), kamp_dato = kamp_datoer[kamp])
 ```
 
 filter() vælger kun rækker, der opfylder betingelsen:
@@ -1004,7 +1004,7 @@ nedbør_7t <- function(dt) {
     "&parameterId=precip_past1h",                        # Nedbør målt pr time.
     "&datetime=", start, "/", slut,                      # Tidsinterval.
     "&limit=8",                                          # Max antal observationer.
-    "&api-key=", "d074f877-5fe5-44d1-a473-21a6be80a0c2") # API-nøgle.
+    "&api-key=", api_nøgle) # API-nøgle.
   
   #> httr::GET() henter data fra API.
   #> httr::content() trækker selve svaret ud som tekst.
@@ -2123,7 +2123,7 @@ metrics_lasso_best <- bind_rows(
 
 Vi ser resultaterne 
 ```{r}
-view(metrics_ridge_best)
+#view(metrics_ridge_best)
 ```
 
 ### Best subset selection
@@ -2350,7 +2350,7 @@ metrics_samlet_alle <- bind_rows(
 
 Vi ser resultatet
 ```{r}
-View(metrics_samlet_alle)
+#View(metrics_samlet_alle)
 ```
 
 ### Cross Validation 
