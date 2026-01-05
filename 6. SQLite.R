@@ -1,50 +1,70 @@
+#Vi starter med at indlæse de nødvendige pakker. 
+#Tidyverse bruges til databehandling.
+#RSQlite bruges til at arbejde med databaser.
 pacman::p_load("tidyverse", "RSQLite")
 
-# 1. Oprettelse af SQLite database ---------------------------------------
-
+# 1. Oprettelse af SQLite database  ---------------------------------------
 if (!dir.exists("VFFdata")) dir.create("VFFdata")
 
+#Vi opretter forbindelse til SQLite databasen. 
 connection_VFFdata <- dbConnect(SQLite(), "VFFdata/fodbolddata.sqlite")
 
-# Indlæs og rens data
+#Indlæs og rens data
+#Vi indlæser VFF kampdata og fjerner helligdag-navn. 
 VFF_Komplet <- readRDS("VFFdata/VFF_Komplet.rds") |> 
   select(-Helligdag_navn) 
 
+#Vi indlæser DMI vejrdata og fjerner rækker uden kampdatoer. 
 DMI_data <- readRDS("VFFdata/dmi.rds") |> 
   filter(!is.na(kamp_dato))
 
+#Indløser Transfermarkt_data og fjerner rækker uden sæson informationer
 Transfermarkt_data <- readRDS("VFFdata/TransfermarktData.rds") |> 
   filter(!is.na(season_format))
 
+#Indlæser informationer om tilskuerne vffkort 
 data_vffkort01_rds <- readRDS("VFFdata/vffkort01.rds") 
 
+#Indlæser informationer om modstanderne med fcidk. 
 data_fcidk_rds <- readRDS("VFFdata/fcidk.rds")
 
-# Vi smider data i SQLite
+#Vi smider nu data i SQLite
+#dbWriteTable = Vi gemmer en dataframe permanent i en database som en tabel. 
+#overwrite = Vi sikre at den gamle data overskrives hver gang vi kører koden. 
 dbWriteTable(connection_VFFdata, "vff", data_vffkort01_rds, overwrite = TRUE)
 dbWriteTable(connection_VFFdata, "fci", data_fcidk_rds, overwrite = TRUE)
 dbWriteTable(connection_VFFdata, "DMI_data", DMI_data, overwrite = TRUE)
 dbWriteTable(connection_VFFdata, "VFF_Komplet", VFF_Komplet, overwrite = TRUE)
 dbWriteTable(connection_VFFdata, "Transfermarkt_data", Transfermarkt_data, overwrite = TRUE)
 
+#Vi ser alle tabeller der findes i databasen. 
 dbListTables(connection_VFFdata)
 
+#Vi lukker databasen. 
 dbDisconnect(connection_VFFdata)
 
 # 2. Query database -------------------------------------------------------
 
+#vi genåbner forbindelsen til databasen. 
 connection_VFFdata <- dbConnect(SQLite(), "VFFdata/fodbolddata.sqlite")
+
+#dbGetQuery henter data fra databasen og laver dem om til en dataframe. 
+#Vi henter alle kolonner med SELECT
 SQL_DMI <- dbGetQuery(connection_VFFdata, "SELECT * FROM DMI_data")
 SQL_VFF_Komplet <- dbGetQuery(connection_VFFdata, "SELECT * FROM VFF_Komplet")
 SQL_Transfermarkt <- dbGetQuery(connection_VFFdata, "SELECT * FROM Transfermarkt_data")
 SQL_vff <- dbGetQuery(connection_VFFdata, "SELECT * FROM vff")
 SQL_fci <- dbGetQuery(connection_VFFdata, "SELECT * FROM fci")
+
+#Vi lukker databasen. 
 dbDisconnect(connection_VFFdata)
 
 # 3. Join ---------------------------------------------------------------
 
+#Vi åbner forbindelsen. 
 connection_VFFdata <- dbConnect(SQLite(), "VFFdata/fodbolddata.sqlite")
 
+#Vi samler alle kampdata og får en komplet tabel over alle kampe. 
 sql_samlet <- dbGetQuery(connection_VFFdata, "
 SELECT
     datetime(D.kamp_dato, 'unixepoch') AS kampdato,
@@ -127,10 +147,14 @@ LEFT JOIN fci AS F
 WHERE V.sæson BETWEEN '2003/2004' AND '2025/2026'
 ")
 
+#Vi lukker databasen. 
 dbDisconnect(connection_VFFdata)
 
 
-# 4. Gem som RDS ---------------------------------------------------------
+# 4. Vi gemmer som RDS ---------------------------------------------------------
+saveRDS(sql_samlet, "VFFdata/VFF_samlet_variabler.rds") 
 
-saveRDS(sql_samlet, "VFFdata/VFF_samlet_variabler.rds")
+
+
+
 
