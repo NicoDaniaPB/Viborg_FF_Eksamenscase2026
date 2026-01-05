@@ -74,49 +74,6 @@ Undersøgelsesdesignet er i opgaven overvejende deduktiv, da eksisterende machin
 Der er altså inddraget regressionsbaserede machine learning-modeller, som er effektive til forudsigelse af en numerisk variabel. Modellernes præstation vurderes ved hjælp af MSE, RMSE og R² på opdelte trænings- og testdatasæt. Validiteten styrkes ved test på ukendte data, mens reliabiliteten understøttes af en ensartet og reproducerbar analyseproces. Resultaterne er i væsentlig grad afhængige af datakvaliteten og de tilgængelige variabler, hvilket fremhæver betydningen af systematisk dataforberedelse.
 
 ## Analyse
-###industri
-Superligaklubber opererer indenfor den professionelle danske fodbold industri, som er integreret i den bredere danske oplevelse- og underholdningsindustri[@sec-palle]. Den primære kerneydelse er afvikling af fodboldkamp. Her sker værdiskabelsen gennem underliggende mekanismer knyttet til komplementære serviceydelser, som forplejning, faciliteter og øvrige tilknyttede tilbud[@sec-palle].
-
-Industriens geografiske omfang er primært lokalt og regionalt, idet Viborg FF konkurrerer i den danske Superliga og dermed er underlagt Det Danske Klublicenssystem[@sec-palle], som regulerer turneringsstrukturer, licenskrav og de økonomiske vilkår. 
-
-###branche LINK SKAL LAVES TIL LITTERATURLISTE
-Viborg FF er registreret under NACE-branchen: 931200 Drift af sportsklubber #(https://www.proff.dk/firma/viborg-ff-prof-fodbold-as/viborg/idr%C3%A6tforeninger-og-klubber/GKYJDXI10O5).I denne branche består aktørerne af kommercielle organisationer som opererer med professionel sport, specifikt elitefodbold. Klubbernes kerneydelser er at levere sportslige oplevelser, og de fungerer derfor hovedsageligt til forbrugere og samarbejdspartnere.
-
-#Markedet:
-Markedet for professionel elitefodbold henvender sig til et differentieret marked, som består af både et B2C og et B2B. B2C-markedet består primært af lokale og regionale fans, familier, unge og fodboldinteresserede, som søger underholdning og fællesskab[@sec-palle]. Her spiller loyalitet og emotionel tilknytning en central rolle ved værdiskabelsen. På B2B markedet henvender organisationen til kunderne gennem sponsorater, netværksarrangementer og komplementære ydelser, som leje af skybox og VIP-oplevelser[@sec-palle]. 
-
-###Konklusion:
-På tværs af industriens strukturelle rammer, branchens karakteristika og markedets segmenter fremstår Viborg FF’s tilskuertal som tæt forbundet med klubbens evne til at forstå og imødekomme sine kunder. I den professionelle fodbold industri skabes værdien ikke alene gennem afviklingen af kampene, men gennem de komplementære serviceydelser, der præger den samlede oplevelse. Som aktør i NACE‑branchen for drift af sportsklubber leverer Viborg FF sportslige oplevelser til både forbrugere og samarbejdspartnere, hvilket gør publikums engagement centralt for klubbens drift. Markedets opdeling i B2C‑fans og B2B‑erhvervspartnere viser, at efterspørgslen formes af både emotionelle, sociale og kommercielle mekanismer. På denne baggrund bliver viden om tilskuertal væsentlig for klubbens planlægning og værdiskabelse, da den understøtter en mere målrettet indsats over for de segmenter, der udgør fundamentet for Viborg FF’s aktiviteter.
-
-Y-akse: Kompetitivt scope: bred eller smal industri
-X-akse: Konkurrencemæssig fordel: Lave omkostninger eller unikhed
-Kigger man på produktniveau så kigger man på flere forskellige muligheder
-De 2 vigtige p’er for at møde markedsstandarden:
-
-###2 - Differentiering:
-  Viborg FF differentierer sig over et bredt publikum gennem sine kerneprodukter, herunder:
-  
-Hjemmekampe
-billettyper
-Abonnementsøsninger
-Merchandise
-
-Disse produkter differentieres gennem oplevelse, klub, identitet og kundeforhold, hvor loyalitet og gentagne køb understøttes af komplementerende produkter og services. Differentieringen gør det muligt at øge den oplevede værdi for fans og dermed skabe højere skifteomkostninger sammenlignet med substitutter som anden underholdning.
-3a Omkostningsfokus:
-Viborg FF anvender omkostningsfokus på udvalgte produkter rettet mod specifikke segmenter, herunder:
-Forplejning under events
-
-Her er fokus på effektiv drift og marginoptimering snarere end unikhed. Produkterne skal leve op til markedsstandarden, men konkurrerer primært på pris og omkostningskontrol indenfor et afgrænset segment.
-
-###Hvilke business units bør de investere i?
-For Viborg FF er der forretningsområder, som gør det oplagt at investere i forbindelse med vores nye dataværktøj, hvor præcise prognoser for tilskuerantallet kan anvendes i deres beslutningsprocesser og i den daglige drift. Investeringer på selve kampdagene samt større investeringer i salg og marketing kan gøres mere fordelagtige, da Viborg FF med dataværktøjet kan minimere ressourceforbruget og markedsføre sig mere aggressivt ved kampe, hvor prognosen indikerer, at der forventes et lavt tilskuertal. 
-
-###Datamodenhed og datagovernance
-Viborg FF befinder sig i dag på fase 2 i Gartner’s Data Governance Maturity Model(ref. til model). På dette niveau har organisationen erkendt grundlæggende behov for at øge deres dataindsats. Et centralt tiltag er implementeringen af Power BI-dashboards, som skal øge datatilgængeligheden på tværs af afdelingerne og dermed understøtte en mere datainformeret drift(palle). For at kunne afslutte fase 2 bør Viborg FF fokusere på at sikre, at alle relevante afdelinger har adgang til dashboards, samt etablere en data governance-struktur, der understøtter datakvalitet, ejerskab og standardiserede processer.
-
-Følgende datamodenhed betyder, at Viborg FF placeres i fase 2 i forhold til deres dataindsats. Organisationen er i stand til at anvende data til at forstå sammenhænge, mønstre og adfærd(ref til model), men de er endnu ikke i mål med at anvende data på tværs af afdelingerne for at optimere forrentning indsigten(ref til powerpoint og palle). Det næste naturlige skridt er derfor at bevæge sig mod fase 3, hvor data bruges aktivt at kunne opstille konkurrenceparametre og implementere data analytiske værktøjer og skabe strategiske fordele.
-
-På baggrund af deres nuværende placering i data modenhed og data indsats, kan det konkluderes, at implementeringen af et nyt analytisk system vil være muligt på sigt. Dette forudsætter dog, at Viborg FF først færdiggør fase 2, så organisationen står på et solidt fundament med klare processer, datatilgængelighed og en governance struktur, som skal understøtte, før nye systemer integreres i datainfrastrukturen.
 
 ## Væsentligste konklusioner
 
@@ -1557,7 +1514,7 @@ LEFT JOIN (
         MAX(d7_tilskuere)  AS d7_tilskuere,
         MAX(d3_tilskuere)  AS d3_tilskuere
     FROM vff
-    GROUP BY sæson, runde, tilskuere
+    GROUP BY sæson, runde, tilskuere HAVING COUNT(*) >= 1
 ) AS C
     ON V.sæson = C.sæson
    AND V.runde = C.runde
@@ -1608,6 +1565,7 @@ VFF_samlet_variabler <- VFF_samlet_variabler |>
     udehold         = as.factor(udehold)
   )
 ```
+
 ### Preprocess 
 Vi samler udehold der kun optræder få gange i en fælles kategori. Vi tæller hvor mange gange et hold opretter, og laver en ny kolonne der hedder "n_udehold" som tæller antallet af gange holdet gentages i datasættet. Vi bruger mutate og if_else til at derfiner at et "stor hold" er et hold hvor observation gentages mere end 2 gange. Dvs hold der gentages 2 eller færre gange defineres efterfølgende som faktoren "små hold". Til sidst bruger vi select til at fjerne kolonnen "n_udehold". 
 ```{r}
@@ -1661,7 +1619,8 @@ stor_lm_model <- lm(
 Test for multikollinearitet - VIF (Variance inflation factor) via car-pakken
 VIF-testen fejler, fordi vi har perfekt multikollinearitet
 ```{r}
-vif(stor_lm_model)
+# vif(stor_lm_model)
+# Udkommenteret da Quatro ikke kan håndtere multikollinearitet.
 ```
 
 Vi finder de perfekte lineære afhængigheder
@@ -1769,13 +1728,12 @@ ncol(X)
 Nu er der 42/42, så ingen lineære afhængighed.
 ```{r}
 alias(stor_lm_model_ny)
-
 ```
 
 Vi tester nu for VIF igen. 
 ```{r}
-vif(stor_lm_model_ny)
-
+# vif(stor_lm_model_ny)
+# Udkommenteret da Quatro ikke kan håndtere multikollinearitet.
 ```
 
 Det kan ses, at ingen af variablerne har et kritisk VIF-niveau (over 5). 
@@ -1801,7 +1759,8 @@ stor_lm_model_3_dage <- lm(
 
 Vi tester nu for VIF igen. 
 ```{r}
-vif(stor_lm_model_3_dage)
+# vif(stor_lm_model_3_dage)
+# Udkommenteret da Quatro ikke kan håndtere multikollinearitet.
 ```
 
 ### Stor model for 7 dage før - linenær regression med alle mulige variabler
@@ -1855,7 +1814,8 @@ stor_lm_model_flere_måneder <- lm(
 
 Her beregner vi VIF på modellen der kan forudsige flere måneder i forvejen
 ```{r}
-vif(stor_lm_model_flere_måneder)
+# vif(stor_lm_model_flere_måneder)
+# Udkommenteret da Quatro ikke kan håndtere multikollinearitet.
 ```
 
 ### Samlet for ovenstående modeller
@@ -1985,7 +1945,6 @@ næsten det samme som almindelig lineær regression. Vi vurder 100 lambda-værdi
 til at være tilstrækkeligt. 
 ```{r}
 lambda_grid <- 10^seq(5, -3, length = 100)
-
 ```
 
 Funktion til metrics
@@ -2429,6 +2388,7 @@ align_matrix <- function(newx, refx) {
   colnames(out) <- colnames(refx)
   common <- intersect(colnames(newx), colnames(refx))
   out[, common] <- newx[, common]
+  out
 }
 ```
 
@@ -2708,7 +2668,6 @@ paste(features, collapse = "+"): Sikrer at samem features som i træningen bruge
 drop = FALSE: Bevarer matrix-format (selvom det kun er en række)
 ```{r}
 X_new_raw <- model.matrix(as.formula(paste("~", paste(features, collapse = "+"))), ny_kamp_flere_måneder)[, -1, drop = FALSE]
-
 ```
 
 Vi opretter en tom matrix med samme struktur som træningsdata.
@@ -2736,13 +2695,11 @@ lasso_fit er den allerede trænede Lasso-model, s = best_lambda vælger den lamb
 som giver den mindste cross validation (CV) fejl. 
 ```{r}
 tilskuere_pred <- predict(lasso_fit, s = best_lambda, newx = X_new)
-
 ```
 
 Vi konverterer resultatet til en numerisk værdi. 
 ```{r}
 tilskuere_pred <- as.numeric(tilskuere_pred)
-
 ```
 
 Vores estimat for kampdagen er 5214 tilskuere. Vi skal huske, at der kan være
@@ -2775,15 +2732,10 @@ message(round(tilskuere_pred), "±", round(rmse_value), "\n")
 message("Interval: ", round(lower), "til", round(upper), "\n")
 ```
 
-Vi kan se at vores interval ligger mellem 4663 til 7452. Dvs vi kan ud fra vores
-model konkludere, at for VFFs næste hjemmekamp imod Brøndby IF vil der være 
-et sted mellem 3808 til 6621 tilskuere. 
+Vi kan se at vores interval ligger mellem 4663 til 7452. Dvs vi kan ud fra vores model konkludere, at for VFFs næste hjemmekamp imod Brøndby IF vil der være et sted mellem 3808 til 6621 tilskuere. 
 
-4. Feature sets for alle tidshorisonter ----- 
-vi definerer nu de forskellige features til de forskellige tidspunkter før kampdag
-flere måneder er en langsigtet prediction, hvorfor der er flere ukendte faktorer
-de 3 andre er mere kortsigtede, hvorfor der også er mere data til rådighed 
-jo nærmere vi er på kampstart
+Feature sets for alle tidshorisonter. vi definerer nu de forskellige features til de forskellige tidspunkter før kampdag
+flere måneder er en langsigtet prediction, hvorfor der er flere ukendte faktorer de 3 andre er mere kortsigtede, hvorfor der også er mere data til rådighed jo nærmere vi er på kampstart.
 ```{r}
 feature_sets <- list(
   "flere_måneder" = c(
@@ -2817,32 +2769,106 @@ feature_sets <- list(
 )
 ```
 
-5. Træn Lasso modeller for alle tidshorisonter -----
-vi definerer en lambda grid som kontrollerer hvor kraftigt vi straffer store koeffecienter
-for lasso, som bruges til at undgå overfitting
+Træn Lasso modeller for alle tidshorisonter.
 ```{r}
-lambda_grid <- 10^seq(3, -3, length = 100)
-
+train_lasso_model <- function(train_data, features, lambda_grid) {
+  
+  X_train <- model.matrix(
+    as.formula(paste("~", paste(features, collapse = "+"))),
+    train_data
+  )[,-1, drop = FALSE]
+  
+  y_train <- train_data$tilskuere
+  
+  cv_fit <- cv.glmnet(
+    x = X_train,
+    y = y_train,
+    alpha = 1,
+    lambda = lambda_grid,
+    standardize = TRUE
+  )
+  
+  best_lambda <- cv_fit$lambda.min
+  
+  lasso_fit <- glmnet(
+    x = X_train,
+    y = y_train,
+    alpha = 1,
+    lambda = best_lambda,
+    standardize = TRUE
+  )
+  
+  list(
+    model = lasso_fit,
+    lambda = best_lambda,
+    features = features,
+    x_cols = colnames(X_train),
+    factor_levels = train_data |> 
+      select(where(is.factor)) |> 
+      map(levels)
+  )
+}
 ```
 
-Vi træner en lasso model pr tidshorisont, med de features som passer til den.
-lapply sikrer, at vi laver alle modeller uden at gentage kode
+Lav ny kamp. 
+```{r}
+lav_ny_kamp <- function(data, kamp_id, tidspunkt, feature_sets, lasso_models) {
+  features <- feature_sets[[tidspunkt]]
+  
+  # Tag rækken for den kamp, vi vil evaluere
+  ny <- data[kamp_id, features, drop = FALSE]  # brug korrekt kamp, ikke data[1, ]
+  
+  # Behold numeriske features som de er (ingen nulstilling)
+  return(ny)
+}
+```
+
+Predict tilskuere.
+```{r}
+predict_tilskuere <- function(tidspunkt, ny_kamp, lasso_models) {
+  
+  lasso_model <- lasso_models[[tidspunkt]]
+  
+  X_new_raw <- model.matrix(
+    as.formula(paste("~", paste(lasso_model$features, collapse = "+"))), 
+    ny_kamp
+  )[, -1, drop = FALSE]
+  
+  # Juster kolonner så de matcher træningsdata
+  X_new <- matrix(0, nrow = 1, ncol = length(lasso_model$x_cols))
+  colnames(X_new) <- lasso_model$x_cols
+  common_cols <- intersect(colnames(X_new_raw), lasso_model$x_cols)
+  
+  if(length(common_cols) > 0){
+    X_new[, common_cols] <- X_new_raw[, common_cols]
+  }
+  
+  pred <- predict(lasso_model$model, s = lasso_model$lambda, newx = X_new)
+  as.numeric(pred)
+}
+```
+
+vi definerer en lambda grid som kontrollerer hvor kraftigt vi straffer store koeffecienter for lasso, som bruges til at undgå overfitting.
+```{r}
+lambda_grid <- 10^seq(3, -3, length = 100)
+```
+
+Vi træner en lasso model pr tidshorisont, med de features som passer til den. lapply sikrer, at vi laver alle modeller uden at gentage kode.
 ```{r}
 lasso_models <- lapply(names(feature_sets), function(tidspunkt) {
   train_lasso_model(train_data = train_data, features = feature_sets[[tidspunkt]], lambda_grid = lambda_grid)
 })
 ```
 
-Vi navngiver modellerne med tidshorisonterne så vi kan bruge den igen senere
+Vi navngiver modellerne med tidshorisonterne så vi kan bruge den igen senere.
 ```{r}
 names(lasso_models) <- names(feature_sets)
 ```
 
-6. Funktion til at evaluere én kamp på alle tidshorisonter -----
-denne funktion tager kamp_id og returnerer predictions for alle tidshorisonterne
-for hver tidshorisont oprettes: lav_ny_kamp (opretter en dataframe med features)
-Predict_tilskuere(laver prediction med korrekte lasso model)
-Resultat gemmes i tibble
+### Evaluering af kamp
+Funktion til at evaluere én kamp på alle tidshorisonter. Denne funktion tager kamp_id og returnerer predictions for alle tidshorisonterne
+for hver tidshorisont oprettes: lav_ny_kamp (opretter en dataframe med features) Predict_tilskuere(laver prediction med korrekte lasso model)
+Resultat gemmes i tibble.
 ```{r}
 evaluer_kamp <- function(kamp_id, data, lasso_models, feature_sets) {
   
@@ -2858,10 +2884,7 @@ evaluer_kamp <- function(kamp_id, data, lasso_models, feature_sets) {
 }
 ```
 
-Evaluering af kamp -----
-vi kan nu teste vores modeller med forskellige tidshorisonter ved at indtaste kamp id 
-fra en af kampene i datasættet, indtast blot et tal mellem 1-204.og se hvordan de varierer
-på de forskellige tidspunkter før kampstart
+vi kan nu teste vores modeller med forskellige tidshorisonter ved at indtaste kamp id fra en af kampene i datasættet, indtast blot et tal mellem 1-204.og se hvordan de varierer på de forskellige tidspunkter før kampstart.
 ```{r}
 kamp_id <- 120
 eval_data <- evaluer_kamp(kamp_id, train_data, lasso_models, feature_sets)
@@ -2871,13 +2894,12 @@ eval_data <- evaluer_kamp(kamp_id, train_data, lasso_models, feature_sets)
 print(eval_data)
 ```
 
-Plot prediktioner vs. faktisk tilskuertal
-Vi visualiserer sammenligningen af modellens prediktioner med det faktiske tilskuertal
+Plot prædiktioner vs. faktisk tilskuertal.
+vi visualiserer sammenligningen af modellens prædiktioner med det faktiske tilskuertal.
 ```{r}
 faktisk <- train_data$tilskuere[kamp_id]
 ```
 
-Her visualiseres følgende data
 ```{r}
 ggplot(eval_data, aes(x = Tidspunkt, y = Prediktion)) +
   geom_bar(stat = "identity", fill = "steelblue") +    # Prediktioner som blå søjler
@@ -2887,8 +2909,6 @@ ggplot(eval_data, aes(x = Tidspunkt, y = Prediktion)) +
        x = "Tid før kamp") +
   theme_minimal()
 ```
-
-## Evaluering
 
 ### Hvordan er Test-MSE sammenlignet med CV-MSE
 
