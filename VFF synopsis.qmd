@@ -63,19 +63,60 @@ Hvilke faktorer påvirker antallet af tilskuere?
 Hvordan undersøges hvilken model der vil klare sig bedst?  
 Hvordan kan løsningen implementeres i praksis, med deres nuværende datamodenhed?  
 
-### Afgrænsning (osv.... \[\@sec-pf\] hvis du har brug for at referere til asnittet problemformulering)
-
 ## Videnskabsteori og metode
- Opgaven tager udgangspunkt i et kritisk realistisk paradigme, da tilskuerantallet påvirkes af underliggende mekanismer, og derfor skal opfattes som et observerbart fænomen. Kritisk realisme bygger fundamentalt på, at virkeligheden eksisterer uafhængigt af observatøren, med at vores erkendelse om, at viden om virkeligheden opnås gennem empiriske observationer, data og analytiske modeller. Tilskuerantallet estimeres på baggrund af valgte kvantitative variabler, som vejret, modstandere og helligdage, der fungerer som indikatorer for disse mekanismer. I forhold til ontologi, så skal tilskuerantallet ikke forstås som tilfældigt, da antallet bliver påvirket af vores tidligere nævnte variabler. Vi må dog antage, at der altid vil være underliggende mekanismer, som vi ikke kender, som alligevel kan have betydning for antallet af tilskuere.
-I forhold til epistemologi har vi opnået viden empirisk ved at analysere historiske data om tilskuertal og kamprelaterede faktorer ved hjælp af machine learning-modeller, som identificerer statistiske mønstre og sammenhænge.
-Metodologisk anvender vi en kvantitativ tilgang baseret på sekundære data. De anvendte machine learning-modeller er bygget op på et positivistisk videnskabssyn, ved at de har til formål at identificere statistiske sammenhænge mellem inputvariable og tilskuerantal. Inden for en kritisk realistisk ramme forstås modellerne imidlertid primært som redskaber til at indikere, frem for at forklare de underliggende mekanismer.
+Opgaven tager udgangspunkt i et kritisk realistisk paradigme, da tilskuerantallet påvirkes af underliggende mekanismer, og skal opfattes som et observerbart fænomen. Kritisk realisme bygger fundamentalt på, at virkeligheden eksisterer uafhængigt af observatøren, men at erkendelsen om, at viden om virkeligheden opnås gennem empiriske observationer, data og analytiske modeller. Tilskuerantallet estimeres på baggrund af valgte kvantitative variabler, som vejret, modstandere og helligdage, der fungerer som indikatorer for disse mekanismer.
+I forhold til ontologi, så skal tilskuerantallet ikke forstås som tilfældigt, da antallet bliver påvirket af de tidligere nævnte variabler. Der må dog antages, at der altid vil være underliggende mekanismer, som er ukendte, men alligevel kan have betydning for antallet af tilskuere. 
+I forhold til epistemologi opnås der viden empirisk ved at analysere historiske data om tilskuertal og kamprelaterede faktorer ved hjælp af machine learning-modeller, som identificerer statistiske mønstre og sammenhænge.
+Metodologisk anvendes en kvantitativ tilgang baseret på sekundære data. De anvendte machine learning-modeller er bygget op på et positivistisk videnskabssyn, ved at de har til formål at identificere statistiske sammenhænge mellem inputvariable og tilskuerantal. Inden for en kritisk realistisk ramme forstås modellerne imidlertid primært som redskaber til at indikere, frem for at forklare de underliggende mekanismer.
 
-Undersøgelsesdesignet er i opgaven overvejende deduktiv, da eksisterende machine learning-teori anvendes til at teste forskellige modellers præstation. Samtidig indgår der også abduktive elementer, hvor resultaterne anvendes til justering af variabelvalg, og fortolkning af mulige mekanismer. Vores data består primært af kvantitative data, såsom tilskuerantal og kamprelaterede variable, men inkluderer også kvalitative data fra et interview med Viborg FF, som bidrager til forståelsen af bagvedliggende mekanismer.
-Der er altså inddraget regressionsbaserede machine learning-modeller, som er effektive til forudsigelse af en numerisk variabel. Modellernes præstation vurderes ved hjælp af MSE, RMSE og R² på opdelte trænings- og testdatasæt. Validiteten styrkes ved test på ukendte data, mens reliabiliteten understøttes af en ensartet og reproducerbar analyseproces. Resultaterne er i væsentlig grad afhængige af datakvaliteten og de tilgængelige variabler, hvilket fremhæver betydningen af systematisk dataforberedelse.
+Undersøgelsesdesignet er i opgaven overvejende deduktiv, da eksisterende machine learning-teori anvendes til at teste forskellige modellers præstation. Samtidig indgår der også abduktive elementer, hvor resultaterne anvendes til justering af variabelvalg, og fortolkning af mulige mekanismer. Dataen består primært af kvantitative data, såsom tilskuerantal og kamprelaterede variable, men inkluderer også kvalitative data fra interviewet med Viborg FF, som bidrager til forståelsen af bagvedliggende mekanismer.
+Der er altså inddraget regressionsbaserede machine learning-modeller, som er effektive til forudsigelse af en numerisk variabel. Modellernes præstation vurderes ved hjælp af MSE, RMSE og R² på opdelte trænings- og testdatasæt. Validiteten styrkes ved test på ukendte data, mens reliabiliteten understøttes af en ensartet og reproducerbar analyseproces. Resultaterne er i høj grad afhængige af datakvaliteten og de tilgængelige variabler, hvilket fremhæver betydningen af systematisk dataforberedelse [@liv_egholm_2014].
 
 ## Analyse
+Hvilke faktorer påvirker antallet af tilskuere? (hvad påvirker mere end andet)
+Her benyttes følgende kode for at undersøge om variablerne påvirker uafhængigheden af hinanden.
+Stor model - linenær regression med alle variabler (@lst-stor-model). 
+
+Heraf kan det konkluderes at 12 variabler er eksluderet grundet perfekt multikollinearitet, og en efterfølgende VIF-analyse (@lst-vif-stor-modell).
+Det viser at tre variabler blev ekskluderet grundet VIF-værdi på over 3. Dette sikrede de resterende variable at kunne indgå i modellen uden at skabe en øget risiko.
+
+Billetsalget viste sig at være den mest signifikante variable i datasættet. Fjernede man følgende variable faldt resultat for R^2 med hele 0,6153, som svarer til et fald på 30%. Dette indikerer, at billetsalget alene kunne forklare en væsentlig del af variation tilskuerantallet. Hermed udgør variablen en central rolle i modellen. Her blev samme påvirkning observeret på tværs af modellerne, hvilket understreger variablen betydning (@lst-print-metrics).
+
+Hvilken model performer bedst (Lasso) → hvad betyder det for VFF og hvordan kan de arbejde med det → Hvad betyder valg af model
+Ved model resultaterne viser at Lasso model, der overordnet performer bedst. Følgende resultater på tidshorisonterne er:
+3 dage har den en RMSE på 186,5461 & R^2 på 0,9864, hvilket indikerer høj forklaring, en høj forklaringsgrad og lav forudsigelsesfejl. Ved 7 dage, performer Lasso bedst med en RMSE på 347 med en R^2 på 0,952957. samme tendens ses ved 7 og 10 dage med de laveste værdier(RMSE 347 og 503,9). ved længere tidshorisonter ændrer performance sig og en simpel lineær regression performer bedst med en RMSE på 1262,9952 med en R^2 på 0,3782062, som er en markant lavere præcision (@lst-metrics).
+
+Hvordan kan en model forudsige? → (Dette viser med Lasso modellen længere nede)
+Efter Lasso-modellen med den bedste bias-variance-tradeoff (laveste RMSE), så anvendes den i praktisk til at analysere VFFs næste hjemmekamp. Her har vi følgende variabler oplyst:
+
+Runde: 20
+Modstander: Brøndby
+Ugedag: Søndag
+Dato: 15
+Måned: Februar
+Klokkeslæt: 18:00
+
+Ikke alle variabler kendes, som fx vejrdata eller billetsalg, da tidshorisonten er flere måneder fra kampdagen. Den store model kan estimere et interval for tilskuertallet. Data blev klargjort, og skulle testes i vores Lasso-model flere måneder før kampstart. Det blev et estimat på 5214 tilskuere. Her bruges CV-RMSE til at finde intervallet. CV-RMSE bruges (som er 1406) og ikke test-RMSE, da det er nye data som modellen skal performe på, og ikke kendte data som det er ved test-RMSE (@lst-rmse-kamp).
+
+Intervallet for tilskuere er derfor mellem 3808 til 6621. Det estimeres derfor, at der kommer mellem 3808 og 6621 tilskuere til næste hjemmekamp imod Brøndby IF. Igen vil præcisionen forbedres, jo tættere på kampstart, da vejrdata og billetsalg data er med, som forbedrer præcisionen af modellen. Disse modeller kan ikke anvendes, da det ikke er så tæt på kampstart, at disse data er tilgængelige. Modellerne er klargjort, så man bare manuelt skal taste værdierne, og så giver den resultatet (@lst-variabler)
+Derudover er der lavet en funktion i bunden, som kan teste modellerne på kampe fra datasættet, så det kan tjekkes hvor tæt på det faktiske tilskuertal modellerne kommer (@lst-estimat-kamp)
+
+Prognosen gør det muligt for Viborg FF at kunne justere aktiveringen af billetter, tilpasse planlægningen, indkøb af varer og planlægge personale. her vil det være muligt at når de nærmere sig kampdagen tilpasse ressourceallokeringen for at kunne reducere spild.
+
+Viborg FF befinder sig i dag på fase 2 i Gartner’s Data Governance Maturity Model [@Data_i_en_forretningskontekst]. På dette niveau har organisationen erkendt grundlæggende behov for at øge deres dataindsats. Et centralt tiltag er implementeringen af Power BI-dashboards, som skal øge datatilgængeligheden på tværs af afdelingerne og dermed understøtte en mere datainformeret drift [@sec-palleolga]. For at kunne afslutte fase 2 bør Viborg FF fokusere på at sikre, at alle relevante afdelinger har adgang til dashboards, samt etablere en data governance-struktur, der understøtter datakvalitet, ejerskab og standardiserede processer.
+Følgende datamodenhed betyder, at Viborg FF placeres i fase 2 i forhold til deres dataindsats. Organisationen er i stand til at anvende data til at forstå sammenhænge, mønstre og adfærd, men de er endnu ikke i mål med at anvende data på tværs af afdelingerne for at optimere forrentning indsigten [@sec-palleolga]. Det næste naturlige skridt er derfor at bevæge sig mod fase 3, hvor data bruges aktivt at kunne opstille konkurrenceparametre og implementere data analytiske værktøjer og skabe strategiske fordele.
+På baggrund af deres nuværende placering i data modenhed og data indsats, kan det konkluderes, at implementeringen af et nyt analytisk system vil være muligt på sigt. Dette forudsætter dog, at Viborg FF først færdiggør fase 2-initiativerne, så organisationen står på et solidt fundament med klare processer, datatilgængelighed og en governance struktur, som skal understøtte, før nye systemer integreres i datainfrastrukturen [@Data_i_en_forretningskontekst].
+
 
 ## Væsentligste konklusioner
+Formålet med projektet var at undersøge, hvordan machinelearning-modeller kan forudsige tilskuerantallet til Viborg FF hjemmekamp på forskellige tidspunkter før kampstart, samt vurdere muligheden for praktisk implementering givet klubbens data modenhed. 
+Analysen viser, at tilskuertallet kan forudsiges med høj præcision, men at tidshorisonten er afhængig af tidshorisonten og tilgængeligheden af variabler. 
+Modellernes performance forbedres markant jo tættere på selve kampdagen, hvilket ses i nøgletallene, hvor 3 dages modellen opnår høj præcision, hvor modellerne med lang tidshorisont har en svag præcision. Dette skyldes at Billetsalgsdata, er den mest signifikante variabel og fjernes den falder præcisionen markant. 
+Lasso-regressionen er på 3, 7 og 10 dage og opnår de laveste RMSE-værdier og vurderes som den mest robuste model. Grundet den lille forskel på prædiktionen på flere måneder, så vælges Lasso til prædiktionen, da det vil øge reproducerbarheden. Cross-validation viser en begrænset forskel mellem test- og CV-RMSE, hvilket indikerer en god generaliseringsevne. Da modellen under testen ikke viste tegn på overfitting, kan den anvendes på ukendte data og nye hjemmekampe. Et datadrevet prognoseværktøj vil skabe en betydelig værdi for Viborg FF, da det vil kunne optimere ressourceplanlægningen, reducere spild og styrke beslutningsgrundlaget. implementeringen vurderes realistisk i henhold til deres nuværende data modenhed, særligt ved integrering i eksisterende Power Bi systemer.
+
+Slutteligt kan det konkluderes, at modellerne, benyttet med metodisk viden, og forretningsforståelse udgør et stærkt supplement til VFF’s nuværende erfaringsbaserede prognoser. Modellerne kan altså ikke erstatte menneskelig vurdering fuldstændig, men i stedet fungere som et objektivt og konsistent beslutningsgrundlag. 
+Projektet demonstrerer altså, hvordan kombinationen af data & statistiske metoder kan bidrage til strategisk værdiskabelse og operationel effektivisering.
+
 
 \newpage
 
@@ -1607,6 +1648,7 @@ test_data <- test_data |>
 
 Vi laver en stor lineær regressionsmodel for at afdække potentielle sammenhænge i vores mange forklarende variabler. 
 ```{r}
+#| label: lst-stor-model
 stor_lm_model <- lm(
   tilskuere ~ temp_dry + wind_speed + nedbør_seneste_7_timer +
     ugedag + placering_lag_hjemme + placering_lag_ude + mål_seneste_3_hjemme
@@ -1813,6 +1855,7 @@ stor_lm_model_flere_måneder <- lm(
 
 Her beregner vi VIF på modellen der kan forudsige flere måneder i forvejen
 ```{r}
+#| label: lst-vif-stor-model
 vif(stor_lm_model_flere_måneder)
 ```
 
@@ -2339,6 +2382,7 @@ Vi samler alle modeller i en tibble
 Vi bruger bind_rows til at samle alle modeller, og bruger arrange til at 
 sorter efter den bedste (laveste) MSE. 
 ```{r}
+#| label: lst-metrics 
 metrics_samlet_alle <- bind_rows(
   metrics_lm,
   metrics_ridge,
@@ -2350,7 +2394,8 @@ metrics_samlet_alle <- bind_rows(
 
 Vi ser resultatet
 ```{r}
-#View(metrics_samlet_alle)
+#| label: lst-print-metrics
+print(metrics_samlet_alle)
 ```
 
 ### Cross Validation 
@@ -2647,6 +2692,7 @@ skal forudsige tilskuereantallet flere måneder før.
 De kategoriske variabler bliver sat som "factor, og de numeriske værdier er 
 forsat numeriske værdier.
 ```{r}
+#| label: lst-variabler
 ny_kamp_flere_måneder <- tibble(
   ugedag            = factor("Søndag", levels = levels(train_data$ugedag)),
   sæson             = factor("2025/2026", levels = levels(train_data$sæson)), 
@@ -2712,6 +2758,7 @@ Vi tager CV-RMSE fra cross-validation, som vi har lavet tidligere.
 Vi bruger filter til at isolere tidspunktet til "Flere måneder før"-modellen.
 Vi bruger efterfølgende pull-funktionen til at trække CV-RMSE ud. 
 ```{r}
+#| label: lst-rmse-kamp
 rmse_value <- cv_lasso_results %>%
   filter(Tidspunkt == "Flere måneder før") |> 
   pull(CV_RMSE)
@@ -2725,6 +2772,7 @@ upper <- tilskuere_pred + rmse_value
 
 Vi printer resultatet
 ```{r}
+#| label: lst-estimat-kamp
 message("Forventet tilskuertal for næste kamp:\n")
 message(round(tilskuere_pred), "±", round(rmse_value), "\n")
 message("Interval: ", round(lower), "til", round(upper), "\n")
@@ -2908,143 +2956,9 @@ ggplot(eval_data, aes(x = Tidspunkt, y = Prediktion)) +
   theme_minimal()
 ```
 
-## Eksempler på markdown-sproget
+## Data i en forretningskontekst
 
-Her hentes et billede 
-
-Sådan henviser/refererer du til en figur: [@fig-crispdm]
-
-![Faserne i CRISP-DM.](crisp-dm.png){#fig-crispdm width="40%"}
-
-Her er et eksempel på anvendelse af en png fil, som skal ligge i dit
-working directory. Tekst mellem [] er figurteksten, som du øsnker i
-din opgave. Tekst mellem () er (placering og) navn på figuren. Tekst
-mellem {} er et henvisningsnavn, som du kan bruge til at henvise til
-figuren i din tekst. 
-
-
-Her er et eksempel på en figur, som jeg henviser til [@fig-bnp_pr_capita] . 
-En figur som JEG har lavet længere nede i koden.
-
-
-Her et eksempel med en tabel [@tbl-sammenfat], som JEG har lavet længere nede.
-
-Her er noget tekst blabla, og nu vil jeg gerne lave en reference til afsnit
-[@sec-problemstilling].
-
-Reference fx fra interviews bla.bla..bla... eller en bog [@bang_2025] osv
-
-Reference til en ligning: blabla @eq-forecasting blabla
-
-$$\hat{T}_{t} = \frac{1}{m} \sum_{j=-k}^k y_{t+j}$$ {#eq-forecasting}
-
-Jeg kan også referere til fx en værdi, som jeg har udregnet i en kode
-chunk:
-
-```{r}
-#| label: r_squared
-#| echo: false
-# Indlæs data og lav lineær regression
-library(ggplot2)
-model <- lm(hwy ~ displ, data = mpg)
-r2 <- summary(model)$r.squared
-
-```
-
-I forbindelse med den simple lineære regression er $R^2 =$
-`r round(r2, 2)`
-
-Lav gerne mange kode chuncks i stedet for at have lange chunks - det giver et bedre overblik. Indholdet i en kode chunk skal være sammenhængende. Men lav gerne flere i forbindelse med fx, at du laver en Lasso regression.
-
-
-
-```{r}
-#| label: Pakker og snik snak
-#| include: false
-
-# Tilføj kun de pakker, du har brug for, hvilket jeg ikke har gjort, da jeg har taget nogle irrelevante med. 
-pacman::p_load(tidyverse, caret, janitor, glue, leaps, car, glmnet, boot, feasts, fable, tsibbledata, forecast, fpp2, fpp3, fabletools)
-
-```
-
-<!-- Her har jeg brugt ctrl+shift+c for at udkommentere -->
-
-<!-- Hvis echo = TRUE, vises koden. -->
-
-<!-- Hvis echo = FALSE, skjules koden, men output vises stadig. -->
-
-<!-- Hvis eval = TRUE, køres koden. -->
-
-<!-- Hvis eval = FALSE, køres koden ikke, og der kommer derfor intet output fra chunken. -->
-
-<!-- include bestemmer, om både kode og output fra chunken skal inkluderes i det færdige dokument. -->
-
-<!-- Hvis include = FALSE, køres koden stadig (medmindre eval=FALSE), men hverken kode eller output vises i dokumentet. -->
-
-<!-- Dette er nyttigt, hvis du vil udføre noget "bag kulisserne" (f.eks. indlæse data), uden at det vises for læseren. -->
-
-<!-- echo: Skal koden vises? -->
-
-<!-- eval: Skal koden køres? -->
-
-<!-- include: Skal kode og output inkluderes i dokumentet? -->
-
-
-
-<!-- default for de tre vigtigste chunk options i RMarkdown/Quarto er: -->
-<!-- echo: TRUE - Koden vises som standard i dokumentet. -->
-<!-- eval: TRUE - Koden køres som standard. -->
-<!-- include: TRUE - Både kode og output inkluderes som standard i det færdige dokument. -->
-
-<!-- Prøv at ændre på include, eval, echo mv... -->
-
-```{r}
-#| label: fig-bnp_pr_capita
-#| message: false
-#| warning: false
-#| echo: false
-#| fig-cap: Australsk BNP pr capita
-#| fig-width: 4.5
-#| fig-height: 2
-
-global_economy |>
-  filter(Country == "Australia") |>
-  autoplot(GDP/Population) +
-  labs(title= "GDP pr capita", y = "$US")
-
-```
-<!-- "fig-bnp_pr_capita" er unikke navn til at lave reference med -->
-<!-- "Australsk BNP pr capita" er tekst til figuren -->
-
-
-```{r}
-#| label: tbl-sammenfat
-#| message: false
-#| warning: false
-#| echo: false
-#| tbl-cap: Outliers og indflydelsesrige observationer.
-
-sammenfat <- data.frame(
-  "observation" = c("16", "17", "39", "117"),
-  "outlier" = c("Ja", "Ja", "Nej", "Nej"),
-  "hoj_leverage" = c("Nej", "Nej", "Ja", "Ja"),
-  indflydelsesrig = c("Nej", "Nej", "Nej", "Ja"),
-  reference = c(
-    "Residuals vs Fitted, Q-Q Plot, Scale-Location, Boxplot",
-    "Residuals vs Fitted, Q-Q Plot, Scale-Location",
-    "Residuals vs Leverage",
-    "Residuals vs Leverage (Cook's Distance)"
-  )
-)
-
-colnames(sammenfat) <- c("Observation", "Outlier", "Høj leverage", "Indflydelsesrig observation", "Reference til plot")
-
-knitr::kable(sammenfat)
-
-```
-<!-- "tbl-sammenfat" er unikke navn til at lave reference med -->
-<!-- "Australsk BNP pr capita" er tekst til tabellen -->
-
+![Tabel.](tabel.png){#fig-tabel width="40%"}
 
 ## Transskriberede interviews og præsentationer 
 TurboScribe er brugt til at transskribere lydfilerne der blev optaget ved besøget hos Viborg FF [@turboscribe].
