@@ -1375,7 +1375,7 @@ Uploade alle data til RSqLight og join data - brug som minimum select, left join
 
 ### Prædiktion på nye data (fx best-case/worst-case scenario for de første kampe i foråret)
 
-### Sammenlign resultatet med formålet med undersøgelsen.
+### Sammenlign resultatet med formålet med undersøgelsen
 
 ## Eksempler på markdown-sproget
 
