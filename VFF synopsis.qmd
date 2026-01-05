@@ -66,16 +66,6 @@ Hvordan kan løsningen implementeres i praksis, med deres nuværende datamodenhe
 ### Afgrænsning (osv.... \[\@sec-pf\] hvis du har brug for at referere til asnittet problemformulering)
 
 ## Videnskabsteori og metode
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-
-## Analyse
-=======
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
  Opgaven tager udgangspunkt i et kritisk realistisk paradigme, da tilskuerantallet påvirkes af underliggende mekanismer, og derfor skal opfattes som et observerbart fænomen. Kritisk realisme bygger fundamentalt på, at virkeligheden eksisterer uafhængigt af observatøren, med at vores erkendelse om, at viden om virkeligheden opnås gennem empiriske observationer, data og analytiske modeller. Tilskuerantallet estimeres på baggrund af valgte kvantitative variabler, som vejret, modstandere og helligdage, der fungerer som indikatorer for disse mekanismer. I forhold til ontologi, så skal tilskuerantallet ikke forstås som tilfældigt, da antallet bliver påvirket af vores tidligere nævnte variabler. Vi må dog antage, at der altid vil være underliggende mekanismer, som vi ikke kender, som alligevel kan have betydning for antallet af tilskuere.
 I forhold til epistemologi har vi opnået viden empirisk ved at analysere historiske data om tilskuertal og kamprelaterede faktorer ved hjælp af machine learning-modeller, som identificerer statistiske mønstre og sammenhænge.
 Metodologisk anvender vi en kvantitativ tilgang baseret på sekundære data. De anvendte machine learning-modeller er bygget op på et positivistisk videnskabssyn, ved at de har til formål at identificere statistiske sammenhænge mellem inputvariable og tilskuerantal. Inden for en kritisk realistisk ramme forstås modellerne imidlertid primært som redskaber til at indikere, frem for at forklare de underliggende mekanismer.
@@ -127,7 +117,6 @@ Viborg FF befinder sig i dag på fase 2 i Gartner’s Data Governance Maturity M
 Følgende datamodenhed betyder, at Viborg FF placeres i fase 2 i forhold til deres dataindsats. Organisationen er i stand til at anvende data til at forstå sammenhænge, mønstre og adfærd(ref til model), men de er endnu ikke i mål med at anvende data på tværs af afdelingerne for at optimere forrentning indsigten(ref til powerpoint og palle). Det næste naturlige skridt er derfor at bevæge sig mod fase 3, hvor data bruges aktivt at kunne opstille konkurrenceparametre og implementere data analytiske værktøjer og skabe strategiske fordele.
 
 På baggrund af deres nuværende placering i data modenhed og data indsats, kan det konkluderes, at implementeringen af et nyt analytisk system vil være muligt på sigt. Dette forudsætter dog, at Viborg FF først færdiggør fase 2, så organisationen står på et solidt fundament med klare processer, datatilgængelighed og en governance struktur, som skal understøtte, før nye systemer integreres i datainfrastrukturen.
->>>>>>> Stashed changes
 
 ## Væsentligste konklusioner
 
@@ -1411,29 +1400,6 @@ data_fcidk_rds <- readRDS("VFFdata/fcidk.rds")
 ```
 
 ### RSQLight
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-Uploade alle data til RSqLight og join data - brug som minimum select, left join, from, where og helst også group by og having. Vis at du kan bruge SQL til dataarbejde.
-
-### Download joinet datasæt, formatér behørigt, og gør data klar til preprocessing
-
-### Preprocess - dan flere variabler og lav ét datasæt uden missing med en række for hver hjemmekamp, og fjern alle variabler, som ikke skal indgå i
-
-## Modellering - herunder opdeling i et trænings- og testdatasæt - med et seed = jeres holdnummer.
-
-### Stor model - linenær regression med alle variabler
-
-### Lasso / Ridge - husk at bruge CV til at optimere lambda
-
-### Subset selection metoder (brug mindst én)
-
-### Sammenlign på validation de forskellige MSE fra hver model
-=======
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 Vi starter med at indlæse de nødvendige pakker. 
 Tidyverse bruges til databehandling.
 RSQlite bruges til at arbejde med databaser.
@@ -2921,13 +2887,6 @@ ggplot(eval_data, aes(x = Tidspunkt, y = Prediktion)) +
        x = "Tid før kamp") +
   theme_minimal()
 ```
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 
 ## Evaluering
 
