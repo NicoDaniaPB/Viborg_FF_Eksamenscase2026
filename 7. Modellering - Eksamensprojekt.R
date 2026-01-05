@@ -98,6 +98,11 @@ ncol(kampdag_X)
 # Vi har 57 kolonner, 45 kolonner er ikke lineært afhængige af andre kolonner. 
 # Det betyder, at 12 kolonner er lineræt afhængige af andre kolonner.
 
+# I samlet_variabler har vi vores rå data, her har vi 43 kolonner, som repræsenterer 
+# vores 43 variabler. De 57 kolonner her antallet af kolonner i designmatricen 
+# efter vi har kørt dummy-kodningen. De numeriske variabler giver 1 kolonne. 
+# Faktorvariablerne bliver omdannet til dummies, og giver k - 1, hvor k er antallet af dummykolonner.
+
 # Vores model lider af multikollinearitet, fordi flere af  vores variabler
 # beskriver det samme fænomen. Det giver perfekt lineær afhængighed mellem 
 # variablerne (dette kaldes også aliasing). Nogle af de variabler der forårsager 
@@ -144,6 +149,8 @@ qr(X)$rank
 ncol(X)
 alias(stor_lm_model_ny)
 
+
+
 # Det kan ses, at net_balance skyldes fejlen. Den fjerner vi nu
 stor_lm_model_ny <- lm(
   tilskuere ~ 
@@ -171,7 +178,6 @@ summary(stor_lm_model_ny)
 # ncol tæller antallet af regressorer i modellen, dvs det antal af kolonner, som 
 # ikke er lineært afhængige af hinanden. 
 # alias() identificer hvilke variabler der er 100% lineære afhængige af hinanden. 
-X <- model.matrix(stor_lm_model_ny)
 X <- model.matrix(stor_lm_model_ny)
 qr(X)$rank
 ncol(X)
@@ -777,6 +783,7 @@ align_matrix <- function(newx, refx) {
   colnames(out) <- colnames(refx)
   common <- intersect(colnames(newx), colnames(refx))
   out[, common] <- newx[, common]
+  out
 }
 
 # K-fold CV funktion for LASSO (da det er vores bedste model)
@@ -814,7 +821,7 @@ cv_lasso <- function(features, data, k = 5, lambda_grid) {
     
     best_lambda <- cv_fit$lambda.min
     
-    
+  
     lasso_fit <- glmnet(
       x = X_train,
       y = y_train,
@@ -1002,6 +1009,7 @@ lasso_fit <- glmnet(X_train, y_train, alpha = 1, lambda = lambda_grid)
 
 # Cross-validation for bedste lambda
 # Vi finder den bedste balance mellem bias, varians og overfitting.
+set.seed(1)
 cv_fit <- cv.glmnet(X_train, y_train, alpha = 1, lambda = lambda_grid)
 best_lambda <- cv_fit$lambda.min
 
@@ -1051,7 +1059,7 @@ tilskuere_pred <- predict(lasso_fit, s = best_lambda, newx = X_new)
 tilskuere_pred <- as.numeric(tilskuere_pred)
 # Vi ser resultatet
 tilskuere_pred
-# Vores estimat for kampdagen er 5214 tilskuere. Vi skal huske, at der kan være
+# Vores estimat for kampdagen er 5129 tilskuere. Vi skal huske, at der kan være
 # fejl i begge retninger. Vi bruger nu vores cross validation RMSE fra tidligere,
 # til at finde det rigtige interval for tilskuereantallet for VFFs næste hjemmekamp.
 
@@ -1081,7 +1089,6 @@ cat("Interval: ", round(lower), "til", round(upper), "\n")
 # flere måneder er en langsigtet prediction, hvorfor der er flere ukendte faktorer
 # de 3 andre er mere kortsigtede, hvorfor der også er mere data til rådighed 
 # jo nærmere vi er på kampstart
-
 
 feature_sets <- list(
   "flere_måneder" = c(
@@ -1116,6 +1123,83 @@ feature_sets <- list(
 
 
 # 5. Træn Lasso modeller for alle tidshorisonter -----
+
+train_lasso_model <- function(train_data, features, lambda_grid) {
+  
+  X_train <- model.matrix(
+    as.formula(paste("~", paste(features, collapse = "+"))),
+    train_data
+  )[,-1, drop = FALSE]
+  
+  y_train <- train_data$tilskuere
+  
+  cv_fit <- cv.glmnet(
+    x = X_train,
+    y = y_train,
+    alpha = 1,
+    lambda = lambda_grid,
+    standardize = TRUE
+  )
+  
+  best_lambda <- cv_fit$lambda.min
+  
+  lasso_fit <- glmnet(
+    x = X_train,
+    y = y_train,
+    alpha = 1,
+    lambda = best_lambda,
+    standardize = TRUE
+  )
+  
+  list(
+    model = lasso_fit,
+    lambda = best_lambda,
+    features = features,
+    x_cols = colnames(X_train),
+    factor_levels = train_data %>%
+      select(where(is.factor)) %>%
+      map(levels)
+  )
+}
+
+# Lav ny kamp
+
+lav_ny_kamp <- function(data, kamp_id, tidspunkt, feature_sets, lasso_models) {
+  features <- feature_sets[[tidspunkt]]
+  
+  # Tag rækken for den kamp, vi vil evaluere
+  ny <- data[kamp_id, features, drop = FALSE]  # brug korrekt kamp, ikke data[1, ]
+  
+  # Behold numeriske features som de er (ingen nulstilling)
+  return(ny)
+}
+
+# 3. Predict tilskuere ----
+
+predict_tilskuere <- function(tidspunkt, ny_kamp, lasso_models) {
+  
+  lasso_model <- lasso_models[[tidspunkt]]
+  
+  X_new_raw <- model.matrix(
+    as.formula(paste("~", paste(lasso_model$features, collapse = "+"))), 
+    ny_kamp
+  )[, -1, drop = FALSE]
+  
+  # Juster kolonner så de matcher træningsdata
+  X_new <- matrix(0, nrow = 1, ncol = length(lasso_model$x_cols))
+  colnames(X_new) <- lasso_model$x_cols
+  common_cols <- intersect(colnames(X_new_raw), lasso_model$x_cols)
+  
+  if(length(common_cols) > 0){
+    X_new[, common_cols] <- X_new_raw[, common_cols]
+  }
+  
+  pred <- predict(lasso_model$model, s = lasso_model$lambda, newx = X_new)
+  as.numeric(pred)
+}
+
+
+
 # vi definerer en lambda grid som kontrollerer hvor kraftigt vi straffer store koeffecienter
 # for lasso, som bruges til at undgå overfitting
 
@@ -1139,9 +1223,8 @@ names(lasso_models) <- names(feature_sets)
 #                                 Resultat gemmes i tibble
 
 evaluer_kamp <- function(kamp_id, data, lasso_models, feature_sets) {
-  
   map_dfr(names(feature_sets), function(tidspunkt) {
-    ny_kamp <- lav_ny_kamp(data, kamp_id, tidspunkt, feature_sets)
+    ny_kamp <- lav_ny_kamp(data, kamp_id, tidspunkt, feature_sets, lasso_models)
     pred <- predict_tilskuere(tidspunkt, ny_kamp, lasso_models)
     tibble(
       Kamp = kamp_id,
@@ -1152,12 +1235,13 @@ evaluer_kamp <- function(kamp_id, data, lasso_models, feature_sets) {
 }
 
 
+
 # 7. Evaluering af kamp -----
 # vi kan nu teste vores modeller med forskellige tidshorisonter ved at indtaste kamp id 
 # fra en af kampene i datasættet, indtast blot et tal mellem 1-204.og se hvordan de varierer
 # på de forskellige tidspunkter før kampstart
 
-kamp_id <- 120
+kamp_id <- 99
 eval_data <- evaluer_kamp(kamp_id, train_data, lasso_models, feature_sets)
 
 print(eval_data)
@@ -1175,7 +1259,6 @@ ggplot(eval_data, aes(x = Tidspunkt, y = Prediktion)) +
        y = "Prediktion af tilskuere",
        x = "Tid før kamp") +
   theme_minimal()
-
 
 
 
