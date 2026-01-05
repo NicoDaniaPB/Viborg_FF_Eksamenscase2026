@@ -68,9 +68,12 @@ Hvordan kan løsningen implementeres i praksis, med deres nuværende datamodenhe
 ## Videnskabsteori og metode
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
 ## Analyse
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
  Opgaven tager udgangspunkt i et kritisk realistisk paradigme, da tilskuerantallet påvirkes af underliggende mekanismer, og derfor skal opfattes som et observerbart fænomen. Kritisk realisme bygger fundamentalt på, at virkeligheden eksisterer uafhængigt af observatøren, med at vores erkendelse om, at viden om virkeligheden opnås gennem empiriske observationer, data og analytiske modeller. Tilskuerantallet estimeres på baggrund af valgte kvantitative variabler, som vejret, modstandere og helligdage, der fungerer som indikatorer for disse mekanismer. I forhold til ontologi, så skal tilskuerantallet ikke forstås som tilfældigt, da antallet bliver påvirket af vores tidligere nævnte variabler. Vi må dog antage, at der altid vil være underliggende mekanismer, som vi ikke kender, som alligevel kan have betydning for antallet af tilskuere.
@@ -1410,6 +1413,7 @@ data_fcidk_rds <- readRDS("VFFdata/fcidk.rds")
 ### RSQLight
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 Uploade alle data til RSqLight og join data - brug som minimum select, left join, from, where og helst også group by og having. Vis at du kan bruge SQL til dataarbejde.
 
 ### Download joinet datasæt, formatér behørigt, og gør data klar til preprocessing
@@ -1426,6 +1430,8 @@ Uploade alle data til RSqLight og join data - brug som minimum select, left join
 
 ### Sammenlign på validation de forskellige MSE fra hver model
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 Vi starter med at indlæse de nødvendige pakker. 
@@ -2916,6 +2922,9 @@ ggplot(eval_data, aes(x = Tidspunkt, y = Prediktion)) +
   theme_minimal()
 ```
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
