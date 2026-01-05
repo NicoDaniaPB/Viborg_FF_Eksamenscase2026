@@ -95,9 +95,324 @@ pacman::p_load("tidyverse", "rvest", "stringr", "lubridate")
 ```
 
 ### Hente data fra DMI og gør dem tidy
+Upload af relevante pakker
+```{r}
+pacman::p_load("tidyverse", "rvest", "stringr", "janitor", "lubridate", "RSQLite")
+```
 
+Indlæser Superstatsdata, da kampdatoerne skal bruges til at hente vejrdata.
+```{r}
+vff_hjemmekampe <- read_rds("VFFdata/superstatsvff.rds")
+```
+
+Hvis der findes en .Renviron-fil, så læses den ind her.
+```{r}
+if (file.exists(".Renviron")) readRenviron(".Renviron")
+```
+
+Sys.getenv() bruges i R til at hente oplysninger gemt i f.eks. .Renviron.
+Nøglen er døbt MY_API_KEY i .Renviron og derfor den der hentes.
+Den returerner i dette tilfælde en API-nøgle til DMI, da det er den der er gemt i filen.
+```{r}
+api_nøgle <- Sys.getenv("MY_API_KEY")
+```
+
+Kampdatoerne for VFF's hjemmekampe gemmes i kamp_datoer.
+Skal bruges i et loop, så der kun kommer vejrobservationer fra DMI på kampdage.
+```{r}
+kamp_datoer <- vff_hjemmekampe$tidsstempel
+```
+
+Opretter en tom liste og gemmer i dmi_list.
+```{r}
+dmi_list <- list()
+```
+
+Looper gennem alle kampdatoer en ad gangen og henter DMI data.
+Seq_along(kamp_datoer) laver en sekvens af 1, 2, 3, osv. 
+I bliver derfor hvert enkelt kampnummer i rækkefølgen. 
+```{r}
+for (i in seq_along(kamp_datoer)) {
+  dato_format <- format(kamp_datoer[i], "%Y-%m-%dT%H:%M:%SZ")
+  #> URL-koder datoen så den kan bruges i API-kaldet.
+  #> URLencode() oversætter tegn som specialtegn.
+  #> F.eks. bliver 2023-07-12 19:00 til "2023-07-12%2019%3A00".så datoerne de kan bruges i URL'en.
+  dato_encode <- URLencode(dato_format)
+  #> Bygger URL'en der henter temperatur og vind for kampen index i. Alle kampe. 
+  #> paste0() sætter tekst sammen uden mellemrum
+  url_temp_vind <- paste0(
+    "https://dmigw.govcloud.dk/v2/metObs/collections/observation/items?",
+    "stationId=06060",                 
+    "&datetime=", dato_encode,
+    "&api-key=", "d074f877-5fe5-44d1-a473-21a6be80a0c2")
+  #> Henter DMI’s data for kampene.
+  #> httr::GET() sender en HTTP-forespørgsel af typen GET.
+  #> Det betyder, at serveren bliver bedt om at sende data fra det angivne URL.
+  api_kald <- httr::GET(url_temp_vind)
+  #> httr::content() trækker indholdet ud som tekst.
+  #> Læser API-svaret som ren JSON-tekst
+  tekst <- httr::content(api_kald, "text", encoding = "UTF-8")
+  #> jsonlite::fromJSON() omdanner JSON-tekst til en R-liste
+  #> Konverterer data så de kan gemmes i dmi_list.
+  dmi_list[[i]] <- jsonlite::fromJSON(tekst)
+  #> message() skriver til konsollen.
+  #> Viser løbende hvilket tidspunkt der hentes data for.
+  message("Henter data for:", dato_format, "\n")
+}
+```
+
+lapply() kører en funktion på hvert element listen og returnerer en ny liste.
+function(x) ... hvad der skal trækkes ud fra hvert liste-element.
+x$features$properties henter den del af JSON-dataen,
+hvor DMI gemmer selve målingerne (temperatur, vind og andre variabler)
+$ bruges til at tilgå properties i listen.
+Resultatet bliver en ny liste (dmi_properties),
+hvor hvert element indeholder properties for en kamp.
+```{r}
+dmi_properties <- lapply(dmi_list, function(x) x$features$properties)
+
+```
+
+bind_rows() samler alle liste-elementer i en samlet data frame.
+.id = "kamp" tilføjer en kolonne med kampnummer.
+mutate() tilføjer/ændrer kolonner:
+kamp = konverterer kamp-id til heltal as.integer.
+kamp_dato = henter korrekt kampdato med kampnummeret.
+```{r}
+dmi_df <- bind_rows(dmi_properties, .id = "kamp") |>
+  mutate(kamp = as.integer(kamp), kamp_dato = kamp_datoer[kamp])
+```
+
+filter() vælger kun rækker, der opfylder betingelsen:
+%in% tester om parameterId findes i den angivne liste og
+beholder kun de to parametre, som skal bruges = temperatur og vind.
+```{r}
+dmi_df <- dmi_df |>
+  filter(parameterId %in% c("temp_dry", "wind_speed"))
+```
+
+group_by() grupperer data efter kamp og parameter = temperatur/vind.
+slice_max() vælger den senest obsaverede måling.
+ungroup() fjerner gruppering så df fungerer normalt igen.
+Ender med eb temperatur og en vindmåling per kamp. 
+```{r}
+dmi_df <- dmi_df |>
+  group_by(kamp, parameterId) |>
+  slice_max(observed) |>
+  ungroup()
+```
+
+select() vælger kun de kolonner, der skal bruges videre i tabellen.
+value = den målte værdi = temperatur eller vindstyrke.
+pivot_wider() omdanner data fra vertikalt format til horisontalt format.
+id_cols angiver hvilke kolonner der skal være unikke rækker = kamp + dato.
+names_from bestemmer hvilke værdier der bliver til nye kolonnenavne = temp/vind.          
+values_from siger hvor måleværdierne skal hentes fra.
+```{r}
+dmi_df <- dmi_df |>
+
+  select(kamp, kamp_dato, parameterId, value) |>
+  pivot_wider(id_cols = c(kamp, kamp_dato),
+              names_from = parameterId,
+              values_from = value)
+```
+
+Funktion der henter den samlede nedbør 7 timer før en kamp.
+```{r}
+#| message: false
+#| warning: false
+nedbør_7t <- function(dt) {
+  
+  # format() laver dato/tid om til tekst i API-formatet "YYYY-MM-DDTHH:MM:SSZ"
+  start <- format(dt - 7*3600, "%Y-%m-%dT%H:%M:%SZ")
+  slut  <- format(dt,           "%Y-%m-%dT%H:%M:%SZ")
+  
+  # paste0() sætter URL'en sammen.
+  url_nedbør <- paste0(
+    "https://dmigw.govcloud.dk/v2/metObs/collections/observation/items?",
+    "stationId=06060",                                   # Station Karup.
+    "&parameterId=precip_past1h",                        # Nedbør målt pr time.
+    "&datetime=", start, "/", slut,                      # Tidsinterval.
+    "&limit=8",                                          # Max antal observationer.
+    "&api-key=", "d074f877-5fe5-44d1-a473-21a6be80a0c2") # API-nøgle.
+  
+  #> httr::GET() henter data fra API.
+  #> httr::content() trækker selve svaret ud som tekst.
+  tekst1 <- httr::content(httr::GET(url_nedbør), "text", encoding = "UTF-8")
+  
+  # jsonlite::fromJSON() forsøger at omdanne JSON-tekst til en liste.
+  js <- try(jsonlite::fromJSON(tekst1, simplifyVector = TRUE), silent = TRUE)
+  
+  # Hvis der er fejl i JSON'en (fx tomt svar) returnerer vi NA.
+  if (inherits(js, "try-error")) return(NA)
+  if (is.null(js$features) || length(js$features) == 0) return(NA)
+  
+  # Henter selve nedbørsværdierne fra properties$value.
+  values <- js$features$properties$value
+  
+  # Udskriver status i konsollen.
+  cat("Henter 7-timers nedbør for:", format(dt, "%Y-%m-%d %H:%M"), "\n")
+  
+  # Summerer nedbør over perioden (NA ignoreres).
+  sum(values, na.rm = TRUE)
+}
+```
+
+Beregn nedbør for alle kampdatoer ved at køre funktionen på hver dato.
+```{r}
+nedbør7t <- sapply(kamp_datoer, nedbør_7t)
+
+```
+
+Tilføj nedbørsværdien til dmi_df ved at matche på kampnummer.
+```{r}
+dmi_df$nedbør_seneste_7_timer  <- nedbør7t[dmi_df$kamp]
+```
+
+Sorter tabellen, så de nyeste kampe kommer øverst = faldende rækkefølge.
+```{r}
+dmi_df <- dmi_df |>
+  arrange(desc(kamp_dato))
+```
+
+Join med de andre to variabler. 
+```{r}
+dmi_df <- dmi_df |>
+  left_join(
+    vff_hjemmekampe |> 
+      mutate(kamp = row_number()) |> 
+      select(kamp),
+    by = "kamp")
+```
+
+Her gemmes DMI dataerne, som en RDS-fil
+```{r}
+saveRDS(dmi_df, "VFFdata/dmi.rds")
+
+```
 ### Hente data fra nager.at og gør dem tidy
+Her defineres URL og parameteren. Her hentes dataen fra [@helligdageweb]
+```{r}
+BASE_URL <- "https://date.nager.at/api/v3/PublicHolidays/"
+LAND <- "/DK" # Landekode for Danmark
+```
 
+Her defineres årsintervallet for dataindsamlingen (Matcher kamp-data perioden)
+```{r}
+aar_super <- 2003:2026  
+```
+
+Her oprettes en tom tibble under "helligdage" objektet.
+Variablene konveteres til de rigtige formater (navn = "chr" og dato = "date")
+```{r}
+helligdage <- tibble(
+  navn = character(), 
+  dato = as.Date(character())
+)
+```
+
+Loop gennem hvert år og hent hellige dage fra date.nager
+Url laves, så den kører de specifikke år igennem
+```{r}
+for (aar in aar_super) {
+  url <- paste0(BASE_URL, aar, LAND)
+  response <- httr::GET(url)
+  
+  data_raw <- httr::content(response, as = "text", encoding = "UTF-8")
+  parsed <- jsonlite::fromJSON(data_raw)
+
+  helligdage_aar <- parsed |> 
+    as_tibble() |>
+    transmute(
+      navn = localName,
+      dato = as.Date(date)
+    )
+  
+  helligdage <- bind_rows(helligdage, helligdage_aar)
+}
+```
+
+Load af vff hjemmekamp-data RDS-fil
+```{r}
+VFF_Hjemmekampe <- read_rds("VFFdata/superstatsvff.rds")
+```
+
+Vi konverterer tidsstempel til date-format for at muliggøre join mellem de to tabeller
+```{r}
+VFF_Hjemmekampe1 <- VFF_Hjemmekampe |> 
+  mutate(
+    Dato_join = as.Date(tidsstempel)
+  )
+```
+
+Left join for at tilføje helligdagsinformation
+```{r}
+VFF_Komplet <- VFF_Hjemmekampe1 |> 
+  left_join(
+    helligdage,
+    by = c("Dato_join" = "dato")
+  ) |> 
+
+  mutate(
+    Er_helligdag = if_else(!is.na(navn), 1, 0), 
+    Helligdag_navn = navn 
+  ) |> 
+  dplyr::select(-navn)
+```
+
+Opgør antal kampe på helligdage vs. almindelige dage. Her skal resultatet være 15
+```{r}
+VFF_Komplet |> 
+  count(Er_helligdag)
+```
+
+Fjern hjælpekolonne og filtrér data fra sæson 2003/2004 og fremefter
+```{r}
+VFF_Komplet <- VFF_Komplet |> 
+  dplyr::select(-Dato_join) |>
+  filter(as.numeric(str_extract(sæson, "^\\d{4}")) >= 2003)
+```
+
+Tilføjelse af feriedage
+```{r}
+VFF_Komplet1 <- VFF_Komplet |>
+  mutate(
+    # Konvertér tidsstempel til Date-objekt
+    Dato_kamp = as_date(ymd_hms(tidsstempel)),  # eller ymd_hms(tidsstempel) for POSIXct
+    
+    # Udtræk måned og ISO-ugenummer fra kampdato
+    maaned = month(Dato_kamp),
+    uge    = isoweek(Dato_kamp),
+    
+    # Definér ferieperioder baseret på danske skoleferier
+    
+    # Sommerferie: 1. juli til 15. august
+    i_sommerferie   = Dato_kamp >= make_date(year(Dato_kamp), 7, 1) &
+      Dato_kamp <  make_date(year(Dato_kamp), 8, 15),
+    
+    # Efterårsferie: Uge 42 + weekend i uge 41 (lørdag-søndag)
+    i_efterårsferie = uge == 42 | (uge == 41 & wday(Dato_kamp, week_start = 1) >= 6),
+    
+    # Vinterferie: Uge 7 (typisk i februar)
+    i_vinterferie   = uge == 7,
+    
+    # Kategorisér ferieperiode i tekstformat
+    ferieperiode    = case_when(
+      i_sommerferie   ~ "Sommerferie",
+      i_efterårsferie ~ "Efterårsferie",
+      i_vinterferie   ~ "Vinterferie",
+      TRUE            ~ "Ingen"
+    ),
+    
+    # Ekstraher klokkeslæt fra tidsstempel (format HH:MM)
+    Tid_kamp = format(ymd_hms(tidsstempel), "%H:%M"))
+
+```
+
+Her gemmes den endelige fil i RDS-formatet
+```{r}
+saveRDS(VFF_Komplet1, file = "VFFdata/VFF_Komplet.rds")
+```
 ### Hente transfer data og gør dem tidy
 Transferdata har været meget svære at få fingrene i, da de fleste hjemmesider med data på området er utilgængelige for os.
 Vi har derfor fundet et open-source-projekt, skabt af en eller flere privatpersoner, som gør det lettere at hente fodbolddata i R.
