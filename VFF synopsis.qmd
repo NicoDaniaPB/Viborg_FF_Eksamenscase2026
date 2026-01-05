@@ -300,7 +300,7 @@ kampe_df <- kampe_df |>
   mutate(klokkeslæt = hm(klokkeslæt))
 ```
 
-Trækker månederne ud - med unique, så f.eks. 05 kun optræder en gang i outputted osv. substr(dato, 4, 5) henter tegn 4 og 5 i dato-strengen, dvs. måneden. Output: [1] "07" "08" "09" "10" "11" "03" "04" "05" "06" "12" "02". Superligaen starter typisk i juli/07 og slutter typisk i maj/05 / start juni/06
+Trækker månederne ud - med unique, så f.eks. 05 kun optræder en gang i outputted osv. substr(dato, 4, 5) henter tegn 4 og 5 i dato-strengen, dvs. måneden. Superligaen starter typisk i juli/07 og slutter typisk i maj/05 / start juni/06
 ```{r}
 unique(substr(kampe_df$dato, 4, 5))
 ```
@@ -343,7 +343,7 @@ kampe_df <- kampe_df |>
 ```
 
 
-Trækker timerne ud med unique, så f.eks. 15 kun optræder en gang i outputted osv. Output: [1] 19 14 16 18 20 15 12 17 21 13 11. 
+Trækker timerne ud med unique, så f.eks. 15 kun optræder en gang i outputted osv. 
 ```{r}
 unique(hour(kampe_df$tidsstempel))
 ```
@@ -417,7 +417,7 @@ kampe_df <- kampe_df |>
 
 desc = descending, så datasættet vises i faldende rækkefølge igen. 
 ```{r}
-kampe_df |> 
+kampe_df <- kampe_df |> 
   arrange(desc(sæson), tidsstempel)
 ```
 
@@ -483,9 +483,9 @@ kampe_df <- kampe_df |>
 Her ændres datasættet til en række pr. kamp pr. hold med pivot_longer() = dobbelt så mange rækker. Det giver 2 rækker pr. kamp (en for hjemmeholdet og en for udeholdet) Det gør det muligt at beregne point, målscore osv. pr. hold.
 ```{r}
 kampe_kloning <- kampe_df |>   
-  pivot_longer(cols = c(hjemmehold, udehold),                           # De to kolonner laves om til rækker.
-               names_to = "hjemme_ude",                                 # Her gemmes navnet på kolonerne hjemmehold og udehold.
-               values_to = "hold") |>                                   # Denne nye kolonne indeholder selve holdnavnet f.eks. VFF.
+  pivot_longer(cols = c(hjemmehold, udehold),     # De to kolonner laves om til rækker.
+               names_to = "hjemme_ude",           # Her gemmes navnet på kolonerne hjemmehold og udehold.
+               values_to = "hold") |>             # Denne nye kolonne indeholder selve holdnavnet f.eks. VFF.
   #> Opretter en ny kolonne = point.
   #> if_else tjekker om denne række er hjemmeholdets række?
   #> Hvis ja, så bruges point_hjemmehold. Hvis nej, så bruges point_udehold.
@@ -495,8 +495,10 @@ kampe_kloning <- kampe_df |>
          #> Ellers udeholdet, så bruges mål_ude. 
          mål_for = if_else(hjemme_ude == "hjemmehold", mål_hjemme, mål_ude),
          #> mål_imod = antal mål modstanderen scorede mod holdet i kampen.
-         #> Hvis det er hjemmeholdets række, så bruges mål imod = mål_ude (modstanderen = udeholdet).
-         #> Hvis dette er udeholdets række, så bruges mål imod = mål_hjemme (modstanderen = hjemmeholdet).
+         #> Hvis det er hjemmeholdets række, så bruges mål imod = mål_ude 
+         #> (modstanderen = udeholdet).
+         #> Hvis dette er udeholdets række, så bruges mål imod = mål_hjemme 
+         #> (modstanderen = hjemmeholdet).
          mål_imod = if_else(hjemme_ude == "hjemmehold", mål_ude, mål_hjemme))
 ```
 
@@ -537,7 +539,8 @@ stillinger <- kampe_kloning |>
   #> 2) bedst måldifference
   #> 3) flest scorede mål
   #> 4) alfabetisk (som sidste udvej. Kan forbedres)
-  #> I faldende rækkefølge med desc, så det er dem med flest point, mål difference osv. som kommer først.
+  #> I faldende rækkefølge med desc, så det er dem med flest point, 
+  #> mål difference osv. som kommer først.
   group_by(sæson, runde) |> 
   arrange(
     desc(point_sum),
@@ -549,7 +552,7 @@ stillinger <- kampe_kloning |>
   
   # Tildeler holdenes normale placering, altså den rigtige stilling.
   mutate(plac_norm = row_number()) |>  # giver korrekt placering i stillingen pr. runde.
-  ungroup()                           # fjerner grupperingen bagefter.
+  ungroup()                            # fjerner grupperingen bagefter.
 ```
 
 Strukturen i superligaen ændrer sig igennem årene. For VFF er sæsonen 2016/2017 helt unik, mens sæsonerne de er i Superligaen. Før 2016/2017 er anderldes og sæsonerne efter også er en kategori for sig. I sæsonen 2016/2017 er der et split i tabellen og det samme i sæsonerne efter. Først skal split runderne identificeres for hver sæson.
@@ -559,8 +562,10 @@ splitinfo <- stillinger |>
   group_by(sæson) |>  
   summarise(
     max_runde  = max(runde),
-    split_runde = if_else(max_runde == 32, 22,          # Split ved runde 22 i 12-holdssæsoner med mesterskabsspil og nedrykningsspil.
-                          if_else(max_runde == 36, 26,  # split ved runde 26 i sæsonen 2016/17, sæson med 14 hold og mesterskabs.. osv.
+    split_runde = if_else(max_runde == 32, 22,          # Split ved runde 22 i 12-holdssæsoner med 
+                                                        # mesterskabsspil og nedrykningsspil.
+                          if_else(max_runde == 36, 26,  # split ved runde 26 i sæsonen 2016/17, 
+                                                        # sæson med 14 hold og mesterskabs.. osv.
                                   NA))) |>              # Ellers ingen split. 
   ungroup()                                             # Fjerner gruppering efter summarise
 ```
@@ -612,7 +617,8 @@ stillinger_split <- stillinger_split |>
   #> 2) bedst måldifference.
   #> 3) flest scorede mål.
   #> 4) alfabetisk (som sidste udvej. Kan forbedres).
-  #> I faldende rækkefølge med desc, så det er dem med flest point, mål difference osv. som kommer først.
+  #> I faldende rækkefølge med desc, så det er dem med flest point, mål difference osv. 
+  #> som kommer først.
   arrange(desc(point_sum),
           desc(måldiff_sum),
           desc(mål_for_sum),
@@ -810,7 +816,8 @@ vff_hjemmekampe <- vff_hjemmekampe |>
     udehold %in% c("Aab", "RFC", "SIF", "VB", "OB") ~ "B",
     udehold %in% c("FCN", "SJF", "FCF", "LBK") ~ "C",
     TRUE ~ "D")) |> # Alle andre.
-  mutate(udnyttelsesgrad_tilskuere = tilskuere / 9695) # Udnyttelsesgrad: en simpel proxy = tilskuer / stadionkapaciteten.
+  # Udnyttelsesgrad: en simpel proxy = tilskuer / stadionkapaciteten.
+  mutate(udnyttelsesgrad_tilskuere = tilskuere / 9695) 
 ```
 
 Ser navnene på alle kolonnerne. 
@@ -881,16 +888,8 @@ Looper gennem alle kampdatoer en ad gangen og henter DMI data.
 Seq_along(kamp_datoer) laver en sekvens af 1, 2, 3, osv. 
 i bliver derfor hvert enkelt kampnummer i rækkefølgen. 
 
-
 Formaterer kampens tidsstempel til det format DMI-API'en kræver.
 format() omdanner dato/tid til en tekststreng i et bestemt format.
-
-
-
-
-
-
-
 ```{r}
 #| message: false
 for (i in seq_along(kamp_datoer)) {
@@ -905,7 +904,7 @@ for (i in seq_along(kamp_datoer)) {
     "https://dmigw.govcloud.dk/v2/metObs/collections/observation/items?",
     "stationId=06060",                 
     "&datetime=", dato_encode,
-    "&api-key=", "d074f877-5fe5-44d1-a473-21a6be80a0c2")
+    "&api-key=", api_nøgle)
   #> Henter DMI’s data for kampene.
   #> httr::GET() sender en HTTP-forespørgsel af typen GET.
   #> Det betyder, at serveren bliver bedt om at sende data fra det angivne URL.
@@ -1021,6 +1020,7 @@ nedbør_7t <- function(dt) {
 
 Beregn nedbør for alle kampdatoer ved at køre funktionen på hver dato.
 ```{r}
+#| message: false
 nedbør7t <- sapply(kamp_datoer, nedbør_7t)
 
 ```
