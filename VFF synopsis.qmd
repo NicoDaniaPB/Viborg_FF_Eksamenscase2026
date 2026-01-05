@@ -1551,6 +1551,7 @@ Indlæser joinet datasæt.
 VFF_samlet_variabler <- readRDS("VFFdata/VFF_samlet_variabler.rds")  
 ```
 
+### Preprocess 
 Vi konverter relevante variabler til faktorer. Vi bruger mutate til at bygge videre på de samlet variabler, og definer dem 
 "as factor".Dette er vigtigt i forbindelse med lineær regression, hvor faktorvariable behandles som kategoriske og derfor omsættes til dummyvariable i matricen.
 ```{r}
@@ -1566,7 +1567,6 @@ VFF_samlet_variabler <- VFF_samlet_variabler |>
   )
 ```
 
-### Preprocess 
 Vi samler udehold der kun optræder få gange i en fælles kategori. Vi tæller hvor mange gange et hold opretter, og laver en ny kolonne der hedder "n_udehold" som tæller antallet af gange holdet gentages i datasættet. Vi bruger mutate og if_else til at derfiner at et "stor hold" er et hold hvor observation gentages mere end 2 gange. Dvs hold der gentages 2 eller færre gange defineres efterfølgende som faktoren "små hold". Til sidst bruger vi select til at fjerne kolonnen "n_udehold". 
 ```{r}
 VFF_samlet_variabler <- VFF_samlet_variabler |>
@@ -1600,9 +1600,9 @@ test_data <- test_data |>
   mutate(
     udehold = factor(udehold, levels = levels(train_data$udehold)))
 ```
-### Stor model - linenær regression med alle variabler
+### Stor model - linenær regression med alle mulige variabler
 
-Vi laver en stor lineær regressionsmodel for at afdække potentielle sammenhængei vores mange forklarende variabler. 
+Vi laver en stor lineær regressionsmodel for at afdække potentielle sammenhænge i vores mange forklarende variabler. 
 ```{r}
 stor_lm_model <- lm(
   tilskuere ~ temp_dry + wind_speed + nedbør_seneste_7_timer +
@@ -1637,6 +1637,11 @@ ncol(kampdag_X)
 ```
 Vi har 57 kolonner, 45 kolonner er ikke lineært afhængige af andre kolonner. 
 Det betyder, at 12 kolonner er lineræt afhængige af andre kolonner.
+
+I samlet_variabler har vi vores rå data, her har vi 43 kolonner, som repræsenterer 
+vores 43 variabler. De 57 kolonner her antallet af kolonner i designmatricen 
+efter vi har kørt dummy-kodningen. De numeriske variabler giver 1 kolonne. 
+Faktorvariablerne bliver omdannet til dummies, og giver k - 1, hvor k er antallet af dummykolonner.
 
 Vores model lider af multikollinearitet, fordi flere af  vores variabler
 beskriver det samme fænomen. Det giver perfekt lineær afhængighed mellem 
@@ -1712,14 +1717,7 @@ modelmatricen)
 ncol tæller antallet af regressorer i modellen, dvs det antal af kolonner, som 
 ikke er lineært afhængige af hinanden. 
 alias() identificer hvilke variabler der er 100% lineære afhængige af hinanden. 
-
 ```{r}
-X <- model.matrix(stor_lm_model_ny)
-X <- model.matrix(stor_lm_model_ny)
-```
-
-```{r}
-X <- model.matrix(stor_lm_model_ny)
 X <- model.matrix(stor_lm_model_ny)
 qr(X)$rank
 ncol(X)
@@ -1732,8 +1730,7 @@ alias(stor_lm_model_ny)
 
 Vi tester nu for VIF igen. 
 ```{r}
-# vif(stor_lm_model_ny)
-# Udkommenteret da Quatro ikke kan håndtere multikollinearitet.
+vif(stor_lm_model_ny)
 ```
 
 Det kan ses, at ingen af variablerne har et kritisk VIF-niveau (over 5). 
@@ -1759,8 +1756,7 @@ stor_lm_model_3_dage <- lm(
 
 Vi tester nu for VIF igen. 
 ```{r}
-# vif(stor_lm_model_3_dage)
-# Udkommenteret da Quatro ikke kan håndtere multikollinearitet.
+vif(stor_lm_model_3_dage)
 ```
 
 ### Stor model for 7 dage før - linenær regression med alle mulige variabler
@@ -1814,11 +1810,10 @@ stor_lm_model_flere_måneder <- lm(
 
 Her beregner vi VIF på modellen der kan forudsige flere måneder i forvejen
 ```{r}
-# vif(stor_lm_model_flere_måneder)
-# Udkommenteret da Quatro ikke kan håndtere multikollinearitet.
+vif(stor_lm_model_flere_måneder)
 ```
 
-### Samlet for ovenstående modeller
+### Samlet for lineære modeller
 
 Predict på testdata
 Vi bruger predict til at tage koefficientere fra den estimerede model, (som 
@@ -1933,7 +1928,7 @@ ggplot(plot_data, aes(x = Observed, y = Predicted)) +
 
 Jo tættere på kampdagen vi er, jo mindre bliver residualerne. Dette betyder, at modellen bliver mere og mere præcis, jo tættere på kampdagen vi kommer. Årsagen  til denne udvikling, er at vi har flere variabler jo tættere på kampdagen vi er. Dette betyder, at vores model kan forklare mere af variationen, hvilket bekræftes ved at R^2 stiger jo tættere på kampdagen vi kommer. 
 
-### Lasso / Ridge 
+### Lasso / Ridge regression (shrinkage-metoder)
 
 Ridge og lasso regression
 
@@ -2266,7 +2261,7 @@ results_subset <- bind_rows(
 )
 ```
 
-### MSE sammenligninger
+### Sammenligning af nøgletal
 
 Samling af de forskellige modeller i en tibble
 
@@ -2355,7 +2350,7 @@ Vi ser resultatet
 View(metrics_samlet_alle)
 ```
 
-### Cross Validation MSE
+### Cross Validation 
 
 Vi kører K-fold CV for Lasso regressions modellen, da det er den model med den 
 laveste RMSE
@@ -2865,7 +2860,7 @@ Vi navngiver modellerne med tidshorisonterne så vi kan bruge den igen senere.
 names(lasso_models) <- names(feature_sets)
 ```
 
-### Evaluering af kamp
+### Evaluering af vores model på en allerede spillet kamp (fra datasættet)
 Funktion til at evaluere én kamp på alle tidshorisonter. Denne funktion tager kamp_id og returnerer predictions for alle tidshorisonterne
 for hver tidshorisont oprettes: lav_ny_kamp (opretter en dataframe med features) Predict_tilskuere(laver prediction med korrekte lasso model)
 Resultat gemmes i tibble.
@@ -2909,14 +2904,6 @@ ggplot(eval_data, aes(x = Tidspunkt, y = Prediktion)) +
        x = "Tid før kamp") +
   theme_minimal()
 ```
-
-### Hvordan er Test-MSE sammenlignet med CV-MSE
-
-### Fortokning
-
-### Prædiktion på nye data (fx best-case/worst-case scenario for de første kampe i foråret)
-
-### Sammenlign resultatet med formålet med undersøgelsen
 
 ## Eksempler på markdown-sproget
 
