@@ -251,7 +251,7 @@ nedbør_7t <- function(dt) {
   values <- js$features$properties$value
   
   # Udskriver status i konsollen.
-  cat("Henter 7-timers nedbør for:", format(dt, "%Y-%m-%d %H:%M"), "\n")
+  message("Henter 7-timers nedbør for:", format(dt, "%Y-%m-%d %H:%M"), "\n")
   
   # Summerer nedbør over perioden (NA ignoreres).
   sum(values, na.rm = TRUE)
