@@ -194,6 +194,11 @@ for (y in VFF_sæsoner) {
 }
 ```
 
+Gemmer data
+```{r}
+# Gemmer data i en RDS-fil i data mappen.
+saveRDS(kampliste_samlede, "VFFdata/superstatsliste.rds")
+```
 Konverterer til dataframe. Kombinerer alle lister til en samlet dataframe. bind_rows() binder alle tabellerne sammen under hinanden og laver et stort datasæt i en tibble.
 ```{r}
 kampe_df <- gemt_kampliste |> 
