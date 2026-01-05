@@ -194,6 +194,16 @@ for (y in VFF_sæsoner) {
 }
 ```
 
+Gemmer data
+```{r}
+# Gemmer data i en RDS-fil i data mappen.
+saveRDS(kampliste_samlede, "VFFdata/superstatsliste.rds")
+```
+
+Indlæs data igen fra RDS-filen. Alle andre steps før nu kan udkommenteres. 
+```{r}
+gemt_kampliste <- readRDS("VFFdata/superstatsliste.rds")
+```
 Konverterer til dataframe. Kombinerer alle lister til en samlet dataframe. bind_rows() binder alle tabellerne sammen under hinanden og laver et stort datasæt i en tibble.
 ```{r}
 kampe_df <- gemt_kampliste |> 
@@ -323,76 +333,514 @@ kampe_df <- kampe_df |>
 
 Opretter en samlet datetime-variabel (dttm) gør det nemmere når datasættet skal merges med andre datasæt senere. dato er et <date> objekt og klokkeslæt er et <Period> objekt. Når de lægges sammen, så bliver det et <dttm> objekt i stedet.
 ```{r}
+kampe_df <- kampe_df |> 
+  mutate(
+    #> Opretter et samlet tidsstempel (date + time i dttm-format) 
+    #> as_datetime konverterer til dato + klokkeslæt
+    tidsstempel = as_datetime(dato + klokkeslæt)) |> 
+  # Fjerner de gamle kolonner med select(-x, -x1), da tidsstempel nu indeholder begge dele
+  select(-dato, -klokkeslæt)
+```
+
+
+Trækker timerne ud med unique, så f.eks. 15 kun optræder en gang i outputted osv. Output: [1] 19 14 16 18 20 15 12 17 21 13 11. 
+```{r}
+unique(hour(kampe_df$tidsstempel))
+```
+
+Laver en ny kategorivariable for tidsperiode i forhold til kampens starttidspunkt på dagen.
+```{r}
+kampe_df <- kampe_df |> 
+  mutate(
+    #> hour(tidsstempel) henter klokkeslættets time-del som et heltal (0–23).
+    #> if-else før kl. 14 -> formiddag, Kl. 14-17 -> eftermiddag og efter kl. 17 -> aften.
+    #> paste0() sætter ugedag + tidskategori(_for-, eftermiddag og aften) sammen,
+    #> f.eks. Søndag + _aften = Søndag_aften osv.
+    tidsperiode = if_else(
+      hour(tidsstempel) < 14,
+      paste0(ugedag, "_formiddag"),
+      if_else(
+        hour(tidsstempel) <= 17,
+        paste0(ugedag, "_eftermiddag"),
+        paste0(ugedag, "_aften"))))
+```
+
+Her deles resultat-kolonnen op i to nye kolonner: separate() splitter tekst baseret på et separatortegn, her er det "-", som er mellem mål for hjemmeholdet og udeholdet. c("mål_hjemme", "mål_ude") er en charactervektor med navnet på de to nye kolonner, som resultatet skal splittes ud i. convert = TRUE betyder, at R automatisk konverterer tekst til tal, altså <int> i stedet for <chr>. 
+```{r}
+kampe_df <- kampe_df |> 
+  separate(resultat, into = c("mål_hjemme", "mål_ude"), sep = "-", convert = TRUE)
+```
+
+Laver to nye kolonner med point til hjemme- og udeholdet. point_hjemme med if_else 3 point hvis hjemmeholdets mål > udeholdets mål. 1 point hvis mål_hjemme == mål_ude, ellers 0 point. point_ude fungerer omvendt for udeholdet. 
+```{r}
+kampe_df <- kampe_df |> 
+  mutate(
+    point_hjemmehold = ifelse(mål_hjemme > mål_ude, 3, ifelse(mål_hjemme == mål_ude, 1, 0)),
+    point_udehold = ifelse(mål_hjemme < mål_ude, 3, ifelse(mål_hjemme == mål_ude, 1, 0)))
+```
+
+separate() deler kampnavnet i hjemme- og udehold, men på superstats hjemmeside er der mellem rum efter "-" ved hold med kun to bogstaver. str_trim() fjerner mellemrum i starten og slutningen af teksten, så " OB" bliver til "OB" og " VB" bliver til "VB".
+```{r}
+kampe_df <- kampe_df |> 
+  separate(kamp, into = c("hjemmehold", "udehold"), sep = "-") |> 
+  mutate(hjemmehold = str_trim(hjemmehold), udehold   = str_trim(udehold))
+```
+
+Sum af mål i de sidste 3 hjemmekampe lag. Mål i sidste tre hjemmekampe. Skal vise målene scoret i de sidste tre hjemmekampe op til den nye hjemmekamp.
+```{r}
+kampe_df <- kampe_df |>
+  #> arrange(sæson, tidsstempel): Sorterer alle kampe kronologisk inden for hver sæson.
+  #> Det er vigtigt, fordi lag() ellers henter fra en forkert kamp.
+  arrange(desc(sæson), tidsstempel) |>
+  #> group_by(sæson, hjemmehold): beregningen laves separat for:
+  #> Hver sæson så sæsonerne ikke overlapper hinanden.
+  #> hvert hjemmehold så hvert hold, så FCK's og VFF's hjemmekampes mål ikke lægges sammen.
+  group_by(sæson, hjemmehold) |> 
+  mutate(
+    mål_seneste_3_hjemme =
+      # lag(mål_hjemme, 1) Mål i den forrige hjemmekamp.
+      lag(mål_hjemme, 1, default = 0) +
+      # lag(mål_hjemme, 2) Mål i de to forrige hjemmekampe.
+      lag(mål_hjemme, 2, default = 0) +
+      # lag(mål_hjemme, 3) Mål i de tre forrige kampe. 
+      lag(mål_hjemme, 3, default = 0)
+    #> Det der sker:
+    #> Runde 1: vil altid vise 0 (ingen tidligere kampe).
+    #> Runde 2: mål i kamp 1
+    #> Runde 3: mål i kamp 1 + kamp 2
+    #> Fra runde 4 i hver sæson vises summen af de tre seneste hjemmekampe. 
+  ) |> 
+  #> ungroup() fjerner den grouping, der blevet lavet med group_by().
+  #> Så det igen bliver et almindeligt datasæt uden grupper.
+  ungroup()
+```
+
+desc = descending, så datasættet vises i faldende rækkefølge igen. 
+```{r}
+kampe_df |> 
+  arrange(desc(sæson), tidsstempel)
+```
+
+Antallet af tilskuere ved seneste møde. Antallet af tilskuere sidst hjemmeholdet mødte samme modstander Indtil videre bliver default sat til 0. 
+```{r}
+kampe_df <- kampe_df |> 
+  #> Sorterer alle kampe kronologisk på tværs af alle sæsoner.
+  #> Dette er vigtigt, fordi lag()-funktionen skal vide hvilken kamp der kronologisk var den seneste.
+  arrange(tidsstempel) |>   
+  #> Grupperer data efter hjemmehold og udehold.
+  #> Det betyder, at lag() kan finde den seneste hjemmekamp mod præcis samme modstander.
+  group_by(hjemmehold, udehold) |> 
+  #> lag(tilskuere) Henter tilskuertallet fra den foregående kamp mod samme modstander.
+  #> default = 0 Bruges, intil en bedre løsning findes, når der ikke er en tidligere hjemmekamp mod modstanderen.
+  #> Sker ved det historiske første møde med en modstander.
+  mutate(
+    tilskuere_hold_lag = 
+      lag(tilskuere, default = 0)) |> 
+  # Fjerner grupering.
+  ungroup()
+```
+
+desc = descending, så datasættet vises i faldende rækkefølge igen. 
+```{r}
+kampe_df <- kampe_df |> 
+  arrange(desc(sæson), tidsstempel)
+```
+
+Point i sidste 3 hjemmekampe. Viser summen af point i de tre seneste hjemmekampe før den aktuelle kamp.
+```{r}
+kampe_df <- kampe_df |>
+  #> Sorterer kampe kronologisk inden for hver sæson.
+  #> Gør at lag() henter point fra de rigtige hjemmekampe.
+  arrange(desc(sæson), tidsstempel) |>
+  #> Gruppen laves pr. sæson og hjemmehold.
+  #> Hver sæson behandles for sig og hvert hjemmehold får sin egen hjemmebane historik.
+  group_by(sæson, hjemmehold) |>
+  mutate(
+    form_seneste_3_hjemme =
+      # Point i seneste hjemmekamp.
+      lag(point_hjemmehold, 1, default = 0) +
+      # Point i de to seneste.
+      lag(point_hjemmehold, 2, default = 0) +
+      # Point i de tre seneste.
+      lag(point_hjemmehold, 3, default = 0)
+    #> Det der sker:
+    #> Runde 1: 0 (ingen tidligere hjemmekampe).
+    #> Runde 2: point fra runde 1.
+    #> Runde 3: point fra runde 1 + runde 2.
+    #> Runde 4+: point fra tre seneste hjemmekampe.
+  ) |>
+  #> Fjerner grouping og går tilbage til normalt datasæt.
+  ungroup()
+```
+
+Placering lag. Fjerner sæsonen 1993/1994 fra datasættet. I denne sæson spiller VFF kun 18 kampe.
+```{r}
+kampe_df <- kampe_df |>  
+  # Beholder kun de kampe der IKKE!= er 1993/1994.
+  filter(sæson != "1993/1994")
+```
+
+Her ændres datasættet til en række pr. kamp pr. hold med pivot_longer() = dobbelt så mange rækker. Det giver 2 rækker pr. kamp (en for hjemmeholdet og en for udeholdet) Det gør det muligt at beregne point, målscore osv. pr. hold.
+```{r}
+kampe_kloning <- kampe_df |>   
+  pivot_longer(cols = c(hjemmehold, udehold),                           # De to kolonner laves om til rækker.
+               names_to = "hjemme_ude",                                 # Her gemmes navnet på kolonerne hjemmehold og udehold.
+               values_to = "hold") |>                                   # Denne nye kolonne indeholder selve holdnavnet f.eks. VFF.
+  #> Opretter en ny kolonne = point.
+  #> if_else tjekker om denne række er hjemmeholdets række?
+  #> Hvis ja, så bruges point_hjemmehold. Hvis nej, så bruges point_udehold.
+  mutate(point = if_else(hjemme_ude == "hjemmehold", point_hjemmehold, point_udehold),
+         #> mål_for = mål scoret af dette hold.
+         #> Hvis denne række er hjemmeholdets række, så bruges mål_hjemme.
+         #> Ellers udeholdet, så bruges mål_ude. 
+         mål_for = if_else(hjemme_ude == "hjemmehold", mål_hjemme, mål_ude),
+         #> mål_imod = antal mål modstanderen scorede mod holdet i kampen.
+         #> Hvis det er hjemmeholdets række, så bruges mål imod = mål_ude (modstanderen = udeholdet).
+         #> Hvis dette er udeholdets række, så bruges mål imod = mål_hjemme (modstanderen = hjemmeholdet).
+         mål_imod = if_else(hjemme_ude == "hjemmehold", mål_ude, mål_hjemme))
+```
+
+Her beregnes stillingen løbende for hver runde.
+```{r}
+stillinger <- kampe_kloning |>
+  #>Starter med en række pr. hold pr. kamp og der grupperes efter sæson og hold.
+  #> Så stillingen bliver indefor de seperate sæsoner og hold pr. kamp.
+  group_by(sæson, hold) |>
+  #> Kampene kommer i kronologisk rækkefølge for hvert hold.
+  #> arrange efter tidspunktet for kampene, indefor grupperne.
+  #> Så sorteres kampene kronologisk for hvert hold i hver sæson med .by_group = TRUE.  
+  arrange(tidsstempel, .by_group = TRUE) |> 
+  #> Beregn løbende totaler cumulative summer, altså løbende sum.
+  #> Løbende point, løbende mål for, løbende mål i mod og løbende mål difference for holdende.
+  #> Efterfølgende fjernes grouping for at omgruppere på sæson, runde og hold.
+  mutate(
+    point_sum    = cumsum(point),
+    mål_for_sum  = cumsum(mål_for),
+    mål_imod_sum = cumsum(mål_imod),
+    måldiff_sum  = mål_for_sum - mål_imod_sum) |> 
+  ungroup() |> 
+  #> Laver en række pr. sæson, pr. runde, pr. hold.
+  #> For at få point sum osv. for en bestemt runde for holdene i en given sæson.
+  #> last() henter de nyeste summer for holdet i den pågældende runde.
+  group_by(sæson, runde, hold) |> 
+  # summarise() laver en række for denne kombination af point, mål_for osv.
+  summarise(
+    point_sum    = last(point_sum),
+    mål_for_sum  = last(mål_for_sum),
+    mål_imod_sum = last(mål_imod_sum),
+    måldiff_sum  = last(måldiff_sum),
+    # .groups = "drop" gør, at resultatet ikke fortsætter med at være grupperet.
+    .groups = "drop") |> 
+  
+  #> For hver runde rangeres holdene korrekt.
+  #> 1) flest point
+  #> 2) bedst måldifference
+  #> 3) flest scorede mål
+  #> 4) alfabetisk (som sidste udvej. Kan forbedres)
+  #> I faldende rækkefølge med desc, så det er dem med flest point, mål difference osv. som kommer først.
+  group_by(sæson, runde) |> 
+  arrange(
+    desc(point_sum),
+    desc(måldiff_sum),
+    desc(mål_for_sum),
+    hold,
+    # Sorterer inde i gruppen .by_group = TRUE.
+    .by_group = TRUE) |>
+  
+  # Tildeler holdenes normale placering, altså den rigtige stilling.
+  mutate(plac_norm = row_number()) |>  # giver korrekt placering i stillingen pr. runde.
+  ungroup()                           # fjerner grupperingen bagefter.
+```
+
+Strukturen i superligaen ændrer sig igennem årene. For VFF er sæsonen 2016/2017 helt unik, mens sæsonerne de er i Superligaen. Før 2016/2017 er anderldes og sæsonerne efter også er en kategori for sig. I sæsonen 2016/2017 er der et split i tabellen og det samme i sæsonerne efter. Først skal split runderne identificeres for hver sæson.
+```{r}
+splitinfo <- stillinger |>  
+  # Gruppere pr. sæson hvor splittet skal findes. 
+  group_by(sæson) |>  
+  summarise(
+    max_runde  = max(runde),
+    split_runde = if_else(max_runde == 32, 22,          # Split ved runde 22 i 12-holdssæsoner med mesterskabsspil og nedrykningsspil.
+                          if_else(max_runde == 36, 26,  # split ved runde 26 i sæsonen 2016/17, sæson med 14 hold og mesterskabs.. osv.
+                                  NA))) |>              # Ellers ingen split. 
+  ungroup()                                             # Fjerner gruppering efter summarise
+```
+
+Tilføjer split-information til stillingerne for hver sæson. left_join sikrer at alle rækker i stillinger bevares, og at max_runde samt split_runde bliver tilføjet ud fra sæsonen.
+```{r}
+stillinger_split <- stillinger |>  
+  left_join(splitinfo, by = "sæson")
+```
+
+Top og bund skal låses fast ved split i de sæsoner med opdeling efter x-antal runder. Sådan at et hold i f.eks. bund 6 eller bund 8 ikke kan komme i top 6 og omvendt.
+```{r}
+stillinger_split <- stillinger_split |> 
+  
+  #> Grupper efter sæson og hold, så hvert holds runder behandles separat.
+  #>  Altså et hold ad gangen. Inden for en sæson.
+  group_by(sæson, hold) |>  
+  
+  #> Sørger for at runderne står i korrekt rækkefølge INDEN FOR hver gruppe.
+  #> .by_group = TRUE betyder: arrange fungerer separat for hver runde. 
+  #> Det vil altså sige at kampene sorteres kronologisk for hvert hold hver for sig.
+  arrange(runde, .by_group = TRUE) |> 
+  mutate(
+    
+    #> Ved splitrunden: Her indeles i 2 gruppe kategorier, top og bund. 
+    #> Top hvis plac_norm ≤ 6bund" hvis plac_norm > 6 og NA i alle andre runder.
+    #> Split runde er NA i sæsoner uden split. 
+    gruppe = if_else(!is.na(split_runde) & runde == split_runde & plac_norm <= 6, "top",
+                     if_else(!is.na(split_runde) & runde == split_runde & plac_norm > 6, "bund", NA))) |>  
+  
+  #> Hvis et hold f.eks. bliver top ved splitrunden, så bliver det top i alle de efterfølgende runder.
+  #> Dette er efter strukturen i de sæsoner med split.
+  #> fill() går nedad i rækkefølgen af runder (I stigende orden nedad).
+  tidyr::fill(gruppe, .direction = "down") |>  
+  # Fjern grouping — resten af pipeline kræver et ikke-grupperet datasæt.
+  ungroup()
+```
+
+Efter splitrunden er top og bund grupperne låst. Nu skal holdene sorteres inden for deres gruppe i hver runde.
+```{r}
+stillinger_split <- stillinger_split |>  
+  
+  #> Grupper efter (sæson, runde, gruppe). 
+  #> Så rangeres top- og bund-grupperne separat i hver runde.
+  group_by(sæson, runde, gruppe) |>
+  
+  #> Sorter hver gruppe med arrange:
+  #> 1) flest point.
+  #> 2) bedst måldifference.
+  #> 3) flest scorede mål.
+  #> 4) alfabetisk (som sidste udvej. Kan forbedres).
+  #> I faldende rækkefølge med desc, så det er dem med flest point, mål difference osv. som kommer først.
+  arrange(desc(point_sum),
+          desc(måldiff_sum),
+          desc(mål_for_sum),
+          hold,
+          .by_group = TRUE) |> 
+  #> Intern placering I gruppen:
+  #> top-gruppe = 1,2,3,4,5,6.
+  #> bund-gruppe = 1,2,3,4,5,6 og ...8 i 2016/2017.
+  #> Hvis gruppe = NA (sæsoner uden split) gives NA.
+  mutate(intern = if_else(!is.na(gruppe), row_number(), NA),
+         
+         #> Global placering:
+         #> I sæsoner uden split bruges plac_norm.
+         #> Ellers top-gruppe med intern placering (1–6).
+         #> Ellers bund-gruppe → intern + 6 (7–12 og 7-14 i 2016/2017).
+         global_plac = if_else(is.na(gruppe), plac_norm,           
+                               if_else(gruppe == "top", intern, intern + 6))) |>  
+  # Fjern grupperingen igen.
+  ungroup()
+```
+
+Henter bund-placeringer i runde 32 for 2016/2017. Da de efter 32 runde spiller play-off, som ikke giver point. 
+```{r}
+bund32 <- stillinger_split |> 
+  
+  #> Her udtrækkes derfor bund holdenes globale placering i runde 32.
+  #> Den gemmes som frys_plac, så den senere kan bruges som fast låst placering.
+  filter(sæson=="2016/2017", runde==32, gruppe=="bund") |> 
+  select(sæson, hold, frys_plac = global_plac)
+```
+
+Fryser bundholdenes placering efter runde 32 i sæsonen 2016/2017. I denne sæson spiller kun top-6 videre efter runde 32 om placeringer. 
+Joiner først deres placering fra runde 32 (frys_plac), og bruger den til at overskrive global_plac i runder efter 32.
+```{r}
+stillinger_split <- stillinger_split |> 
+  left_join(bund32, by = c("sæson","hold")) |> 
+  mutate(
+    
+    #> Derefter bruges if_else til at overskrive global_plac KUN for:
+    #> Sæsonem 2016/2017. Gruppe == "bund" (altså bund-8) efter 32 runder.
+    #> Alle andre sæsoner, top-hold, eller runder 1–32 forbliver uændrede.
+    global_plac = if_else(
+      sæson=="2016/2017" & gruppe=="bund" & runde>32,
+      frys_plac, global_plac)) |> 
+  
+  #> Til sidst fjernes frys_plac igen, da den har udtjent sin værnepligt. 
+  select(-frys_plac)
+```
+
+Beregner placeringen før kampen (lag).
+```{r}
+stilling_lag <- stillinger_split |>  
+  
+  # Grupper pr. sæson og hold, så hver klub behandles separat.
+  group_by(sæson, hold) |> 
+  
+  # Sorterer runder kronologisk inden for hvert hold.
+  arrange(runde, .by_group = TRUE) |>  
+  
+  #> lag(global_plac) henter placeringen fra runden før.
+  #> default = 0L betyder: ingen placering før runde 1.
+  mutate(placering_lag = lag(global_plac, default = 0)) |> 
+  ungroup()
+```
+
+Udtrækker lagget placering for hjemme- og udehold separat, så de kan joines tilbage på det originale kampdatasæt i to separate kolonner.
+```{r}
+plac_hjemme <- stilling_lag |>  
+  select(sæson, runde, hjemmehold = hold,
+         placering_lag_hjemme = placering_lag)
 ```
 
 ```{r}
+plac_ude <- stilling_lag |>  
+  select(sæson, runde, udehold = hold,
+         placering_lag_ude = placering_lag)
+```
+
+Tilføjer placering-lag til kampdata. Joiner på (sæson, runde, hjemmehold) og (sæson, runde, udehold).
+```{r}
+kampe_df <- kampe_df |>  
+  left_join(plac_hjemme, by = c("sæson", "runde", "hjemmehold")) |>  
+  left_join(plac_ude,    by = c("sæson", "runde", "udehold"))
+```
+
+Form i sidste 3 kampe ude og hjemme.
+```{r}
+form_total <- kampe_kloning |>
+  # Sorterer alle kampe kronologisk inden for hver sæson.
+  arrange(sæson, tidsstempel) |>
+  # Grupperer efter sæson og hold, så hvert hold behandles for sig.
+  group_by(sæson, hold) |>
+  mutate(
+    # Summen af point i de seneste 3 kampe (uanset hjemme/ude).
+    # lag(point, 1) = kamp før den aktuelle.
+    # lag(point, 2) = to kampe før.
+    # lag(point, 3) = tre kampe før.
+    form_seneste_3_total =
+      lag(point, 1, default = 0) +
+      lag(point, 2, default = 0) +
+      lag(point, 3, default = 0)) |>
+  ungroup()
 ```
 
 ```{r}
+form_hjemme <- form_total |>
+  select(sæson, runde, hjemmehold = hold,
+         form_seneste_3_hjemmehold = form_seneste_3_total)
 ```
 
 ```{r}
+form_ude <- form_total |>
+  select(sæson, runde, udehold = hold,
+         form_seneste_3_udehold = form_seneste_3_total)
 ```
 
 ```{r}
+kampe_df <- kampe_df |>
+  left_join(form_hjemme, by = c("sæson", "runde", "hjemmehold")) |>
+  left_join(form_ude,    by = c("sæson", "runde", "udehold"))
 ```
 
+Mål i sæsonen hjemme + ude lagget før kampen. Beregn løbende sæsonmål pr. hold uanset hjemme/ude.
 ```{r}
+mål_sæson_lag <- kampe_kloning |>
+  # Kampene sorteres kronologisk inden for hver sæson.
+  arrange(sæson, tidsstempel) |>
+  
+  # Et samlet forløb pr. sæson og hold.
+  group_by(sæson, hold) |>
+  
+  mutate(
+    # Samlede mål i sæsonen EFTER kampen.
+    mål_sæson_total = cumsum(mål_for),
+    
+    # Lagget værdi = mål i sæsonen inden kampen.
+    mål_sæson_lag = lag(mål_sæson_total, default = 0)) |>
+  ungroup()
 ```
 
+Klargør data til join med hjemmehold.
 ```{r}
+mål_sæson_hjemme <- mål_sæson_lag |>
+  select(
+    sæson,
+    runde,
+    hjemmehold = hold,
+    mål_sæson_lag_hjemmehold = mål_sæson_lag)
 ```
 
+Klargør data til join med udehold
 ```{r}
+mål_sæson_ude <- mål_sæson_lag |>
+  select(
+    sæson,
+    runde,
+    udehold = hold,
+    mål_sæson_lag_udehold = mål_sæson_lag)
 ```
 
+Join mål lag tilbage på kampdatasættet.
 ```{r}
+kampe_df <- kampe_df |>
+  left_join(mål_sæson_hjemme, by = c("sæson", "runde", "hjemmehold")) |>
+  left_join(mål_sæson_ude,    by = c("sæson", "runde", "udehold"))
 ```
 
+Gemmer ændringer. 
 ```{r}
+saveRDS(kampe_df, "VFFdata/superstats.rds")
 ```
 
+Load ændringer. 
 ```{r}
+kampe_df <- readRDS("VFFdata/superstats.rds")
 ```
 
+Udvælger alle rækker hvor hjemmeholdet er VFF. Det giver en oversigt over alle VFF's hjemmekampe i datasættet.
 ```{r}
+vff_hjemmekampe <- kampe_df |> 
+  filter(hjemmehold == "VFF")
 ```
 
+Test af hjemmekampene. 
+Output: 318. Det er klasse, da VFF ifølge Superstats har spillet 327 hjemmekampe all time. Sæsonen 1993/1994 indeholdte 9 hjemmekampe, så alle kampene er succesfuldt kommet med i tabellen.
 ```{r}
+paste("Antal hjemmekampe i perioden for VFF er:", nrow(vff_hjemmekampe))
+```
+Tilføjer A, B, C og D kampe. Samt en beregning af uddnyttelsesgraden på Energi Viborg Arena. 
+```{r}
+vff_hjemmekampe <- vff_hjemmekampe |> 
+  # Opretter "udehold_rang" baseret på modstanderens styrke.
+  mutate(udehold_rang = case_when(
+    udehold %in% c("AGF", "FCM", "BIF", "FCK") ~ "A",
+    udehold %in% c("Aab", "RFC", "SIF", "VB", "OB") ~ "B",
+    udehold %in% c("FCN", "SJF", "FCF", "LBK") ~ "C",
+    TRUE ~ "D")) |> # Alle andre.
+  mutate(udnyttelsesgrad_tilskuere = tilskuere / 9695) # Udnyttelsesgrad: en simpel proxy = tilskuer / stadionkapaciteten.
 ```
 
+Ser navnene på alle kolonnerne. 
 ```{r}
+names(vff_hjemmekampe) 
 ```
 
+Tæller antallet af kolonner.
 ```{r}
+ncol(vff_hjemmekampe) # Output: 24.
 ```
 
+Vælger rækkefølgen af kolonnerne med select. 
 ```{r}
+vff_hjemmekampe <- vff_hjemmekampe |>
+  select(ugedag, tidsperiode, tidsstempel, runde, sæson,
+         hjemmehold, udehold, mål_hjemme, mål_ude, mål_sæson_lag_hjemmehold, mål_sæson_lag_udehold,
+         tilskuere, point_hjemmehold, point_udehold, placering_lag_hjemme,
+         placering_lag_ude, mål_seneste_3_hjemme, form_seneste_3_hjemme,
+         form_seneste_3_hjemmehold, form_seneste_3_udehold, tilskuere_hold_lag,
+         udnyttelsesgrad_tilskuere, udehold_rang, dommer
+  ) |>
+  arrange(desc(tidsstempel)) # Faldende rækkefølge.
 ```
 
+Gemmer ændringer. 
 ```{r}
+saveRDS(vff_hjemmekampe, "VFFdata/superstatsvff.rds")
 ```
 
-```{r}
-```
-
-```{r}
-```
-
-```{r}
-```
-
-```{r}
-```
-
-```{r}
-```
-
-```{r}
-```
-
-```{r}
-```
 ### Hente data fra DMI og gør dem tidy
 Upload af relevante pakker.
 ```{r}
