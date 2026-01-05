@@ -399,7 +399,7 @@ Upload af relevante pakker.
 pacman::p_load("tidyverse", "rvest", "stringr", "janitor", "lubridate", "RSQLite")
 ```
 
-Indlæser Superstatsdata, da kampdatoerne skal bruges til at hente vejrdata.
+Vi starter med at indlæse Superstatsdata, da kampdatoerne skal bruges til at hente vejrdata.
 ```{r}
 vff_hjemmekampe <- read_rds("VFFdata/superstatsvff.rds")
 ```
@@ -408,6 +408,8 @@ Hvis der findes en .Renviron-fil, så læses den ind her.
 ```{r}
 if (file.exists(".Renviron")) readRenviron(".Renviron")
 ```
+
+En .Renviron-fil bruges til, at R automatisk kan læse værdier feks. API-nøgler, selvom de ikke er synlige i selve koden.
 
 Sys.getenv() bruges i R til at hente oplysninger gemt i f.eks. .Renviron.
 Nøglen er døbt MY_API_KEY i .Renviron og derfor den der hentes.
@@ -429,7 +431,18 @@ dmi_list <- list()
 
 Looper gennem alle kampdatoer en ad gangen og henter DMI data.
 Seq_along(kamp_datoer) laver en sekvens af 1, 2, 3, osv. 
-I bliver derfor hvert enkelt kampnummer i rækkefølgen. 
+i bliver derfor hvert enkelt kampnummer i rækkefølgen. 
+
+
+Formaterer kampens tidsstempel til det format DMI-API'en kræver.
+format() omdanner dato/tid til en tekststreng i et bestemt format.
+
+
+
+
+
+
+
 ```{r}
 #| message: false
 for (i in seq_along(kamp_datoer)) {
