@@ -76,18 +76,18 @@ Der er altså inddraget regressionsbaserede machine learning-modeller, som er ef
 
 ## Analyse
 
-#industri
+###industri
 Superligaklubber opererer indenfor den professionelle danske fodbold industri, som er integreret i den bredere danske oplevelse- og underholdningsindustri[@sec-palle]. Den primære kerneydelse er afvikling af fodboldkamp. Her sker værdiskabelsen gennem underliggende mekanismer knyttet til komplementære serviceydelser, som forplejning, faciliteter og øvrige tilknyttede tilbud[@sec-palle].
 
 Industriens geografiske omfang er primært lokalt og regionalt, idet Viborg FF konkurrerer i den danske Superliga og dermed er underlagt Det Danske Klublicenssystem[@sec-palle], som regulerer turneringsstrukturer, licenskrav og de økonomiske vilkår. 
 
-#branche LINK SKAL LAVES TIL LITTERATURLISTE
+###branche LINK SKAL LAVES TIL LITTERATURLISTE
 Viborg FF er registreret under NACE-branchen: 931200 Drift af sportsklubber #(https://www.proff.dk/firma/viborg-ff-prof-fodbold-as/viborg/idr%C3%A6tforeninger-og-klubber/GKYJDXI10O5).I denne branche består aktørerne af kommercielle organisationer som opererer med professionel sport, specifikt elitefodbold. Klubbernes kerneydelser er at levere sportslige oplevelser, og de fungerer derfor hovedsageligt til forbrugere og samarbejdspartnere.
 
 #Markedet:
 Markedet for professionel elitefodbold henvender sig til et differentieret marked, som består af både et B2C og et B2B. B2C-markedet består primært af lokale og regionale fans, familier, unge og fodboldinteresserede, som søger underholdning og fællesskab[@sec-palle]. Her spiller loyalitet og emotionel tilknytning en central rolle ved værdiskabelsen. På B2B markedet henvender organisationen til kunderne gennem sponsorater, netværksarrangementer og komplementære ydelser, som leje af skybox og VIP-oplevelser[@sec-palle]. 
 
-#Konklusion:
+###Konklusion:
 På tværs af industriens strukturelle rammer, branchens karakteristika og markedets segmenter fremstår Viborg FF’s tilskuertal som tæt forbundet med klubbens evne til at forstå og imødekomme sine kunder. I den professionelle fodbold industri skabes værdien ikke alene gennem afviklingen af kampene, men gennem de komplementære serviceydelser, der præger den samlede oplevelse. Som aktør i NACE‑branchen for drift af sportsklubber leverer Viborg FF sportslige oplevelser til både forbrugere og samarbejdspartnere, hvilket gør publikums engagement centralt for klubbens drift. Markedets opdeling i B2C‑fans og B2B‑erhvervspartnere viser, at efterspørgslen formes af både emotionelle, sociale og kommercielle mekanismer. På denne baggrund bliver viden om tilskuertal væsentlig for klubbens planlægning og værdiskabelse, da den understøtter en mere målrettet indsats over for de segmenter, der udgør fundamentet for Viborg FF’s aktiviteter.
 
 Y-akse: Kompetitivt scope: bred eller smal industri
@@ -95,7 +95,7 @@ X-akse: Konkurrencemæssig fordel: Lave omkostninger eller unikhed
 Kigger man på produktniveau så kigger man på flere forskellige muligheder
 De 2 vigtige p’er for at møde markedsstandarden:
 
-#2 - Differentiering:
+###2 - Differentiering:
 Viborg FF differentierer sig over et bredt publikum gennem sine kerneprodukter, herunder:
 
 Hjemmekampe
@@ -110,18 +110,18 @@ Forplejning under events
 
 Her er fokus på effektiv drift og marginoptimering snarere end unikhed. Produkterne skal leve op til markedsstandarden, men konkurrerer primært på pris og omkostningskontrol indenfor et afgrænset segment.
 
-#Hvilke business units bør de investere i?
+###Hvilke business units bør de investere i?
 For Viborg FF er der forretningsområder, som gør det oplagt at investere i forbindelse med vores nye dataværktøj, hvor præcise prognoser for tilskuerantallet kan anvendes i deres beslutningsprocesser og i den daglige drift. Investeringer på selve kampdagene samt større investeringer i salg og marketing kan gøres mere fordelagtige, da Viborg FF med dataværktøjet kan minimere ressourceforbruget og markedsføre sig mere aggressivt ved kampe, hvor prognosen indikerer, at der forventes et lavt tilskuertal. 
 
-#Datamodenhed og datagovernance
+###Datamodenhed og datagovernance
 Viborg FF befinder sig i dag på fase 2 i Gartner’s Data Governance Maturity Model(ref. til model). På dette niveau har organisationen erkendt grundlæggende behov for at øge deres dataindsats. Et centralt tiltag er implementeringen af Power BI-dashboards, som skal øge datatilgængeligheden på tværs af afdelingerne og dermed understøtte en mere datainformeret drift(palle). For at kunne afslutte fase 2 bør Viborg FF fokusere på at sikre, at alle relevante afdelinger har adgang til dashboards, samt etablere en data governance-struktur, der understøtter datakvalitet, ejerskab og standardiserede processer.
 
 Følgende datamodenhed betyder, at Viborg FF placeres i fase 2 i forhold til deres dataindsats. Organisationen er i stand til at anvende data til at forstå sammenhænge, mønstre og adfærd(ref til model), men de er endnu ikke i mål med at anvende data på tværs af afdelingerne for at optimere forrentning indsigten(ref til powerpoint og palle). Det næste naturlige skridt er derfor at bevæge sig mod fase 3, hvor data bruges aktivt at kunne opstille konkurrenceparametre og implementere data analytiske værktøjer og skabe strategiske fordele.
 
-På baggrund af deres nuværende placering i data modenhed og data indsats, kan det konkluderes, at implementeringen af et nyt analytisk system vil være muligt på sigt. Dette forudsætter dog, at Viborg FF først færdiggør fase 2-initiativerne, så organisationen står på et solidt fundament med klare processer, datatilgængelighed og en governance struktur, som skal understøtte, før nye systemer integreres i datainfrastrukturen.
-
+På baggrund af deres nuværende placering i data modenhed og data indsats, kan det konkluderes, at implementeringen af et nyt analytisk system vil være muligt på sigt. Dette forudsætter dog, at Viborg FF først færdiggør fase 2, så organisationen står på et solidt fundament med klare processer, datatilgængelighed og en governance struktur, som skal understøtte, før nye systemer integreres i datainfrastrukturen.
 
 #analyse af modellerne
+
 
 ## Væsentligste konklusioner
 
