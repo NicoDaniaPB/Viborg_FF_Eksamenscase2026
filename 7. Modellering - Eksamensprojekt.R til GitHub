@@ -95,7 +95,7 @@ alias(stor_lm_model)
 kampdag_X <- model.matrix(stor_lm_model)
 qr(kampdag_X)$rank
 ncol(kampdag_X)
-# Vi har 59 kolonner, 47 kolonner er ikke lineært afhængige af andre kolonner. 
+# Vi har 57 kolonner, 45 kolonner er ikke lineært afhængige af andre kolonner. 
 # Det betyder, at 12 kolonner er lineræt afhængige af andre kolonner.
 
 # Vores model lider af multikollinearitet, fordi flere af  vores variabler
@@ -166,7 +166,7 @@ summary(stor_lm_model_ny)
 # Vi tester igen for multikollinearitet - VIF (Variance inflation factor) via car-pakken
 # Model.matrix udtrækker desginmatricen fra modellen 
 # qr() laver en QR-dekomposition af designmatricen
-# $rank er antalelt af lineært uafhængige kolonner i X (som vi har defineret som
+# $rank er antallet af lineært uafhængige kolonner i X (som vi har defineret som
 # modelmatricen)
 # ncol tæller antallet af regressorer i modellen, dvs det antal af kolonner, som 
 # ikke er lineært afhængige af hinanden. 
@@ -745,7 +745,7 @@ View(metrics_samlet_alle)
 
 # 10. Cross Validation MSE ----------------------------------------------------
 
-# Vi kør K-fold CV for Lasso regressions modellen, da det er den model med den 
+# Vi kører K-fold CV for Lasso regressions modellen, da det er den model med den 
 # laveste RMSE
 
 # Vi laver en hjælpefunktion
@@ -814,7 +814,7 @@ cv_lasso <- function(features, data, k = 5, lambda_grid) {
     
     best_lambda <- cv_fit$lambda.min
     
-  
+    
     lasso_fit <- glmnet(
       x = X_train,
       y = y_train,
@@ -1051,7 +1051,7 @@ tilskuere_pred <- predict(lasso_fit, s = best_lambda, newx = X_new)
 tilskuere_pred <- as.numeric(tilskuere_pred)
 # Vi ser resultatet
 tilskuere_pred
-# Vores estimat for kampdagen er 6057 tilskuere. Vi skal huske, at der kan være
+# Vores estimat for kampdagen er 5214 tilskuere. Vi skal huske, at der kan være
 # fejl i begge retninger. Vi bruger nu vores cross validation RMSE fra tidligere,
 # til at finde det rigtige interval for tilskuereantallet for VFFs næste hjemmekamp.
 
@@ -1074,7 +1074,108 @@ cat("Interval: ", round(lower), "til", round(upper), "\n")
 
 # Vi kan se at vores interval ligger mellem 4663 til 7452. Dvs vi kan ud fra vores
 # model konkludere, at for VFFs næste hjemmekamp imod Brøndby IF vil der være 
-# et sted mellem 4663 til 7452 tilskuere. 
+# et sted mellem 3808 til 6621 tilskuere. 
+
+# 4. Feature sets for alle tidshorisonter ----- 
+# vi definerer nu de forskellige features til de forskellige tidspunkter før kampdag
+# flere måneder er en langsigtet prediction, hvorfor der er flere ukendte faktorer
+# de 3 andre er mere kortsigtede, hvorfor der også er mere data til rådighed 
+# jo nærmere vi er på kampstart
+
+
+feature_sets <- list(
+  "flere_måneder" = c(
+    "ugedag", "sæson", "runde", "tidsperiode",
+    "ferieperiode", "antal_transfers", "stadion_kapacitet"
+  ),
+  "10_dage" = c(
+    "temp_dry", "wind_speed", "nedbør_seneste_7_timer",
+    "ugedag", "placering_lag_hjemme", "placering_lag_ude",
+    "form_seneste_3_hjemmehold", "form_seneste_3_udehold",
+    "udehold_rang", "sæson", "runde", "tidsperiode",
+    "ferieperiode", "stadion_kapacitet",
+    "d10_tilskuere", "mål_seneste_3_hjemme"
+  ),
+  "7_dage" = c(
+    "temp_dry", "wind_speed", "nedbør_seneste_7_timer",
+    "ugedag", "placering_lag_hjemme", "placering_lag_ude",
+    "form_seneste_3_hjemmehold", "form_seneste_3_udehold",
+    "udehold_rang", "sæson", "runde", "tidsperiode",
+    "ferieperiode", "stadion_kapacitet",
+    "d7_tilskuere", "mål_seneste_3_hjemme"
+  ),
+  "3_dage" = c(
+    "temp_dry", "wind_speed", "nedbør_seneste_7_timer",
+    "ugedag", "placering_lag_hjemme", "placering_lag_ude",
+    "form_seneste_3_hjemmehold", "form_seneste_3_udehold",
+    "udehold_rang", "sæson", "runde", "tidsperiode",
+    "ferieperiode", "stadion_kapacitet",
+    "d3_tilskuere", "mål_seneste_3_hjemme"
+  )
+)
+
+
+# 5. Træn Lasso modeller for alle tidshorisonter -----
+# vi definerer en lambda grid som kontrollerer hvor kraftigt vi straffer store koeffecienter
+# for lasso, som bruges til at undgå overfitting
+
+lambda_grid <- 10^seq(3, -3, length = 100)
+
+# vi træner en lasso model pr tidshorisont, med de features som passer til den.
+# lapply sikrer, at vi laver alle modeller uden at gentage kode
+
+lasso_models <- lapply(names(feature_sets), function(tidspunkt) {
+  train_lasso_model(train_data = train_data, features = feature_sets[[tidspunkt]], lambda_grid = lambda_grid)
+})
+
+# Vi navngiver modellerne med tidshorisonterne så vi kan bruge den igen senere
+names(lasso_models) <- names(feature_sets)
+
+
+# 6. Funktion til at evaluere én kamp på alle tidshorisonter -----
+# denne funktion tager kamp_id og returnerer predictions for alle tidshorisonterne
+# for hver tidshorisont oprettes: lav_ny_kamp (opretter en dataframe med features)
+#                                 Predict_tilskuere(laver prediction med korrekte lasso model)
+#                                 Resultat gemmes i tibble
+
+evaluer_kamp <- function(kamp_id, data, lasso_models, feature_sets) {
+  
+  map_dfr(names(feature_sets), function(tidspunkt) {
+    ny_kamp <- lav_ny_kamp(data, kamp_id, tidspunkt, feature_sets)
+    pred <- predict_tilskuere(tidspunkt, ny_kamp, lasso_models)
+    tibble(
+      Kamp = kamp_id,
+      Tidspunkt = tidspunkt,
+      Prediktion = pred
+    )
+  })
+}
+
+
+# 7. Evaluering af kamp -----
+# vi kan nu teste vores modeller med forskellige tidshorisonter ved at indtaste kamp id 
+# fra en af kampene i datasættet, indtast blot et tal mellem 1-204.og se hvordan de varierer
+# på de forskellige tidspunkter før kampstart
+
+kamp_id <- 120
+eval_data <- evaluer_kamp(kamp_id, train_data, lasso_models, feature_sets)
+
+print(eval_data)
+
+
+# 8. Plot prediktioner vs. faktisk tilskuertal -----
+# vi visualiserer sammenligningen af modellens prediktioner med det faktiske tilskuertal
+
+faktisk <- train_data$tilskuere[kamp_id]
+
+ggplot(eval_data, aes(x = Tidspunkt, y = Prediktion)) +
+  geom_bar(stat = "identity", fill = "steelblue") +    # Prediktioner som blå søjler
+  geom_hline(yintercept = faktisk, color = "red", linetype = "dashed") + # Faktisk tilskuertal rød streg
+  labs(title = paste("Prediction for kamp", kamp_id),
+       y = "Prediktion af tilskuere",
+       x = "Tid før kamp") +
+  theme_minimal()
+
 
 
 
