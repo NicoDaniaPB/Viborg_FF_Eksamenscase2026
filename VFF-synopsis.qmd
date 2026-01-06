@@ -52,6 +52,9 @@ pacman::p_load("knitr", "tinytex", "tidyverse")
 \pagenumbering{arabic} 
 \setcounter{page}{1}
 
+## Link til github 
+https://github.com/NicoDaniaPB/Viborg_FF_Eksamenscase2026/tree/main 
+
 ## Problemstilling {#sec-problemstilling}
 Det helt centrale i udarbejdelsen af dette projekt kredser sig om at kunne forudsige antallet af tilskuere til Viborg FF’s hjemmekampe i Superligaen. På forskellige tidspunkter før kampstart. Det gælder flere måneder før, 10 dage før, 7 dage før og sluteligt 3 dage før start fløjtet lyder fra dommeren på Energi Viborg Arena. Evnen til at kunne forudsige fremmødet før kampstart er central for planlægningen af kampafviklingen, som Palle Nielsen, billet- og stadionansvarlig hos VFF beskriver er der ”altså markant forskel på, om man skal servicere 8.500, eller skal servicere 6.500”, og ”at jo tidligere, at man ved noget om det, så er der jo hele klargøringen til boderne og sådan nogle ting” [@sec-palle]. Palle beskriver hvordan en god kampafvikling forudsætter, at der ikke opstår problemer i forhold til normeringen af ansatte, herunder fremhæver han sikkerheds- og bodpersonale, som skal matche antallet af tilskuere på stadion før der er tale om en god kampafvikling [@sec-palle]. Palle fortæller helt generelt hvordan klubbens brug af data er vokset markant. Han fortæller blandt meget andet om brugen af data, at de skal have kigget ind i normeringen af bodpersonalet i halvlegene, da de gennemsnitligt kun har otte transaktioner i halvlegen [@sec-palleolga]. Palle fortæller også, at han har lavet prædiktioner på tilskuertallet på den tilnærmelsesvis samme måde gennem 20 år [@sec-palle]. Han nævner også, at han primært arbejder i Excel, men at ”det Olga (Dataanalytiker) arbejder i er jo 100 gange smartere. Så det er jo helt klart den vej, vi skal” [@sec-palleolga]. Brugen af data til at forudsige tilskuertallet til fremtidige hjemmekampe er altså vejen frem for Viborg FF. 
 
@@ -107,7 +110,7 @@ Prognosen gør det muligt for Viborg FF at kunne justere aktiveringen af billett
 Viborg FF befinder sig i dag på fase 2 i Gartner’s Data Governance Maturity Model [@Data_i_en_forretningskontekst]. På dette niveau har organisationen erkendt grundlæggende behov for at øge deres dataindsats. Et centralt tiltag er implementeringen af Power BI-dashboards, som skal øge datatilgængeligheden på tværs af afdelingerne og dermed understøtte en mere datainformeret drift [@sec-palleolga]. For at kunne afslutte fase 2 bør Viborg FF fokusere på at sikre, at alle relevante afdelinger har adgang til dashboards, samt etablere en data governance-struktur, der understøtter datakvalitet, ejerskab og standardiserede processer.
 Følgende datamodenhed betyder, at Viborg FF placeres i fase 2 i forhold til deres dataindsats. Organisationen er i stand til at anvende data til at forstå sammenhænge, mønstre og adfærd, men de er endnu ikke i mål med at anvende data på tværs af afdelingerne for at optimere forrentning indsigten [@sec-palleolga]. Det næste naturlige skridt er derfor at bevæge sig mod fase 3, hvor data bruges aktivt at kunne opstille konkurrenceparametre og implementere data analytiske værktøjer og skabe strategiske fordele.
 På baggrund af deres nuværende placering i data modenhed og data indsats, kan det konkluderes, at implementeringen af et nyt analytisk system vil være muligt på sigt. Dette forudsætter dog, at Viborg FF først færdiggør fase 2-initiativerne, så organisationen står på et solidt fundament med klare processer, datatilgængelighed og en governance struktur, som skal understøtte, før nye systemer integreres i datainfrastrukturen [@Data_i_en_forretningskontekst].
-[#sec-analyse]
+[@sec-analyse]
 
 ## Væsentligste konklusioner
 Formålet med projektet var at undersøge, hvordan machinelearning-modeller kan forudsige tilskuerantallet til Viborg FF hjemmekamp på forskellige tidspunkter før kampstart, samt vurdere muligheden for praktisk implementering givet klubbens data modenhed. 
@@ -1224,6 +1227,8 @@ Her gemmes den endelige fil i RDS-formatet
 saveRDS(VFF_Komplet1, file = "VFFdata/VFF_Komplet.rds")
 ```
 ### Transfer data 
+Kort inden afleveringen og ved sidste test bemærkede vi, at transfermarkt-delen pludselig ikke var funktionel grundet manglende adgang / forbindelse til WorldFootballR, som vedligeholdelses via GitHub. Derfor har vi kommenteret hele den del af koden i vores Quarto-fil, og blot indlæst de RDS-filer som vi skabte under dataindsamlingen. VFFs samlet variabler indeholder derfor de oprindelige tiltænkte data for transfers.
+
 Transferdata har været meget svære at få fingrene i, da de fleste hjemmesider med data på området er utilgængelige for os.
 Vi har derfor fundet et open-source-projekt, skabt af en eller flere privatpersoner, som gør det lettere at hente fodbolddata i R.
 Pakken hedder worldfootballR [@worldfootballR]. Pakken blev den 18. september 2025 arkiveret og bliver ikke længere vedligeholdt.
@@ -2955,7 +2960,7 @@ ggplot(eval_data, aes(x = Tidspunkt, y = Prediktion)) +
   theme_minimal()
 ```
 
-## Data i en forretningskontekst
+# Data i en forretningskontekst 
 
 Industri:
 Superligaklubber opererer indenfor den professionelle danske fodbold industri, som er integreret i den bredere danske oplevelse- og underholdningsindustri(Palle). Den primære kerneydelse er afvikling af fodboldkamp. Her sker værdiskabelsen gennem underliggende mekanismer knyttet til komplementære serviceydelser, som forplejning, faciliteter og øvrige tilknyttede tilbud.
@@ -2980,7 +2985,7 @@ Gøre ting forskelligt samme produkttype Forskellige features
 ![Tabel](tabel.png){#tabel width="40%"} 
 
 
-## Yderligere analyse {#sec-analyse}
+# Yderligere analyse {#sec-analyse}
 
 Datagrundlag og udvælgelse af variabler
 Der er indsamlet data for variabler som der antages at være relevante for at forudsige tilskuerantallet for VFFs kommende hjemmekampe. 
@@ -3036,7 +3041,7 @@ CV-RMSE: 3 dage før kamp = 205, flere måneder = 1406.
 
 Forskellen mellem test-RMSE og CV-RMSE er ikke signifikant. derfor kan konkluderes at der ikke er tegn på overfitting i modellen.
 
-## CRISP-DM {#sec-crispdm}
+# CRISP-DM {#sec-crispdm}
 
 Forretningsforståelse
 

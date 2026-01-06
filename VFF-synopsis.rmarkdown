@@ -54,6 +54,9 @@ pacman::p_load("knitr", "tinytex", "tidyverse")
 \pagenumbering{arabic} 
 \setcounter{page}{1}
 
+## Link til github 
+https://github.com/NicoDaniaPB/Viborg_FF_Eksamenscase2026/tree/main 
+
 ## Problemstilling {#sec-problemstilling}
 Det helt centrale i udarbejdelsen af dette projekt kredser sig om at kunne forudsige antallet af tilskuere til Viborg FF’s hjemmekampe i Superligaen. På forskellige tidspunkter før kampstart. Det gælder flere måneder før, 10 dage før, 7 dage før og sluteligt 3 dage før start fløjtet lyder fra dommeren på Energi Viborg Arena. Evnen til at kunne forudsige fremmødet før kampstart er central for planlægningen af kampafviklingen, som Palle Nielsen, billet- og stadionansvarlig hos VFF beskriver er der ”altså markant forskel på, om man skal servicere 8.500, eller skal servicere 6.500”, og ”at jo tidligere, at man ved noget om det, så er der jo hele klargøringen til boderne og sådan nogle ting” [@sec-palle]. Palle beskriver hvordan en god kampafvikling forudsætter, at der ikke opstår problemer i forhold til normeringen af ansatte, herunder fremhæver han sikkerheds- og bodpersonale, som skal matche antallet af tilskuere på stadion før der er tale om en god kampafvikling [@sec-palle]. Palle fortæller helt generelt hvordan klubbens brug af data er vokset markant. Han fortæller blandt meget andet om brugen af data, at de skal have kigget ind i normeringen af bodpersonalet i halvlegene, da de gennemsnitligt kun har otte transaktioner i halvlegen [@sec-palleolga]. Palle fortæller også, at han har lavet prædiktioner på tilskuertallet på den tilnærmelsesvis samme måde gennem 20 år [@sec-palle]. Han nævner også, at han primært arbejder i Excel, men at ”det Olga (Dataanalytiker) arbejder i er jo 100 gange smartere. Så det er jo helt klart den vej, vi skal” [@sec-palleolga]. Brugen af data til at forudsige tilskuertallet til fremtidige hjemmekampe er altså vejen frem for Viborg FF. 
 
@@ -77,16 +80,17 @@ Der er altså inddraget regressionsbaserede machine learning-modeller, som er ef
 ## Analyse
 Hvilke faktorer påvirker antallet af tilskuere? (hvad påvirker mere end andet)
 Her benyttes følgende kode for at undersøge om variablerne påvirker uafhængigheden af hinanden.
-Stor model - linenær regression med alle variabler (@lst-stor-model). 
+Stor model - linenær regression med alle variabler.
 
-Heraf kan det konkluderes at 12 variabler er eksluderet grundet perfekt multikollinearitet, og en efterfølgende VIF-analyse (@lst-vif-stor-modell).
+Heraf kan det konkluderes at 12 variabler er eksluderet grundet perfekt multikollinearitet, og en efterfølgende VIF-analyse. 
+
 Det viser at tre variabler blev ekskluderet grundet VIF-værdi på over 3. Dette sikrede de resterende variable at kunne indgå i modellen uden at skabe en øget risiko.
 
-Billetsalget viste sig at være den mest signifikante variable i datasættet. Fjernede man følgende variable faldt resultat for R^2 med hele 0,6153, som svarer til et fald på 30%. Dette indikerer, at billetsalget alene kunne forklare en væsentlig del af variation tilskuerantallet. Hermed udgør variablen en central rolle i modellen. Her blev samme påvirkning observeret på tværs af modellerne, hvilket understreger variablen betydning (@lst-print-metrics).
+Billetsalget viste sig at være den mest signifikante variable i datasættet. Fjernede man følgende variable faldt resultat for R^2 med hele 0,6153, som svarer til et fald på 30%. Dette indikerer, at billetsalget alene kunne forklare en væsentlig del af variation tilskuerantallet. Hermed udgør variablen en central rolle i modellen. Her blev samme påvirkning observeret på tværs af modellerne, hvilket understreger variablen betydning.
 
 Hvilken model performer bedst (Lasso) → hvad betyder det for VFF og hvordan kan de arbejde med det → Hvad betyder valg af model
 Ved model resultaterne viser at Lasso model, der overordnet performer bedst. Følgende resultater på tidshorisonterne er:
-3 dage har den en RMSE på 186,5461 & R^2 på 0,9864, hvilket indikerer høj forklaring, en høj forklaringsgrad og lav forudsigelsesfejl. Ved 7 dage, performer Lasso bedst med en RMSE på 347 med en R^2 på 0,952957. samme tendens ses ved 7 og 10 dage med de laveste værdier(RMSE 347 og 503,9). ved længere tidshorisonter ændrer performance sig og en simpel lineær regression performer bedst med en RMSE på 1262,9952 med en R^2 på 0,3782062, som er en markant lavere præcision (@lst-metrics).
+3 dage har den en RMSE på 186,5461 & R^2 på 0,9864, hvilket indikerer høj forklaring, en høj forklaringsgrad og lav forudsigelsesfejl. Ved 7 dage, performer Lasso bedst med en RMSE på 347 med en R^2 på 0,952957. samme tendens ses ved 7 og 10 dage med de laveste værdier(RMSE 347 og 503,9). ved længere tidshorisonter ændrer performance sig og en simpel lineær regression performer bedst med en RMSE på 1262,9952 med en R^2 på 0,3782062, som er en markant lavere præcision.
 
 Hvordan kan en model forudsige? → (Dette viser med Lasso modellen længere nede)
 Efter Lasso-modellen med den bedste bias-variance-tradeoff (laveste RMSE), så anvendes den i praktisk til at analysere VFFs næste hjemmekamp. Her har vi følgende variabler oplyst:
@@ -98,21 +102,21 @@ Dato: 15
 Måned: Februar
 Klokkeslæt: 18:00
 
-Ikke alle variabler kendes, som fx vejrdata eller billetsalg, da tidshorisonten er flere måneder fra kampdagen. Den store model kan estimere et interval for tilskuertallet. Data blev klargjort, og skulle testes i vores Lasso-model flere måneder før kampstart. Det blev et estimat på 5214 tilskuere. Her bruges CV-RMSE til at finde intervallet. CV-RMSE bruges (som er 1406) og ikke test-RMSE, da det er nye data som modellen skal performe på, og ikke kendte data som det er ved test-RMSE (@lst-rmse-kamp).
+Ikke alle variabler kendes, som fx vejrdata eller billetsalg, da tidshorisonten er flere måneder fra kampdagen. Den store model kan estimere et interval for tilskuertallet. Data blev klargjort, og skulle testes i vores Lasso-model flere måneder før kampstart. Det blev et estimat på 5214 tilskuere. Her bruges CV-RMSE til at finde intervallet. CV-RMSE bruges (som er 1406) og ikke test-RMSE, da det er nye data som modellen skal performe på, og ikke kendte data som det er ved test-RMSE.
 
-Intervallet for tilskuere er derfor mellem 3808 til 6621. Det estimeres derfor, at der kommer mellem 3808 og 6621 tilskuere til næste hjemmekamp imod Brøndby IF. Igen vil præcisionen forbedres, jo tættere på kampstart, da vejrdata og billetsalg data er med, som forbedrer præcisionen af modellen. Disse modeller kan ikke anvendes, da det ikke er så tæt på kampstart, at disse data er tilgængelige. Modellerne er klargjort, så man bare manuelt skal taste værdierne, og så giver den resultatet (@lst-variabler)
-Derudover er der lavet en funktion i bunden, som kan teste modellerne på kampe fra datasættet, så det kan tjekkes hvor tæt på det faktiske tilskuertal modellerne kommer (@lst-estimat-kamp)
+Intervallet for tilskuere er derfor mellem 3808 til 6621. Det estimeres derfor, at der kommer mellem 3808 og 6621 tilskuere til næste hjemmekamp imod Brøndby IF. Igen vil præcisionen forbedres, jo tættere på kampstart, da vejrdata og billetsalg data er med, som forbedrer præcisionen af modellen. Disse modeller kan ikke anvendes, da det ikke er så tæt på kampstart, at disse data er tilgængelige. Modellerne er klargjort, så man bare manuelt skal taste værdierne, og så giver den resultatet.
+Derudover er der lavet en funktion i bunden, som kan teste modellerne på kampe fra datasættet, så det kan tjekkes hvor tæt på det faktiske tilskuertal modellerne kommer.
 
 Prognosen gør det muligt for Viborg FF at kunne justere aktiveringen af billetter, tilpasse planlægningen, indkøb af varer og planlægge personale. her vil det være muligt at når de nærmere sig kampdagen tilpasse ressourceallokeringen for at kunne reducere spild.
 
 Viborg FF befinder sig i dag på fase 2 i Gartner’s Data Governance Maturity Model [@Data_i_en_forretningskontekst]. På dette niveau har organisationen erkendt grundlæggende behov for at øge deres dataindsats. Et centralt tiltag er implementeringen af Power BI-dashboards, som skal øge datatilgængeligheden på tværs af afdelingerne og dermed understøtte en mere datainformeret drift [@sec-palleolga]. For at kunne afslutte fase 2 bør Viborg FF fokusere på at sikre, at alle relevante afdelinger har adgang til dashboards, samt etablere en data governance-struktur, der understøtter datakvalitet, ejerskab og standardiserede processer.
 Følgende datamodenhed betyder, at Viborg FF placeres i fase 2 i forhold til deres dataindsats. Organisationen er i stand til at anvende data til at forstå sammenhænge, mønstre og adfærd, men de er endnu ikke i mål med at anvende data på tværs af afdelingerne for at optimere forrentning indsigten [@sec-palleolga]. Det næste naturlige skridt er derfor at bevæge sig mod fase 3, hvor data bruges aktivt at kunne opstille konkurrenceparametre og implementere data analytiske værktøjer og skabe strategiske fordele.
 På baggrund af deres nuværende placering i data modenhed og data indsats, kan det konkluderes, at implementeringen af et nyt analytisk system vil være muligt på sigt. Dette forudsætter dog, at Viborg FF først færdiggør fase 2-initiativerne, så organisationen står på et solidt fundament med klare processer, datatilgængelighed og en governance struktur, som skal understøtte, før nye systemer integreres i datainfrastrukturen [@Data_i_en_forretningskontekst].
-[#sec-analyse]
+[@sec-analyse]
 
 ## Væsentligste konklusioner
 Formålet med projektet var at undersøge, hvordan machinelearning-modeller kan forudsige tilskuerantallet til Viborg FF hjemmekamp på forskellige tidspunkter før kampstart, samt vurdere muligheden for praktisk implementering givet klubbens data modenhed. 
-Analysen viser, at tilskuertallet kan forudsiges med høj præcision, men at tilskuerantallet er afhængig af tidshorisonten og tilgængeligheden af variabler. 
+Analysen viser, at tilskuertallet kan forudsiges med høj præcision, men at tidshorisonten er afhængig af tidshorisonten og tilgængeligheden af variabler. 
 Modellernes performance forbedres markant jo tættere på selve kampdagen, hvilket ses i nøgletallene, hvor 3 dages modellen opnår høj præcision, hvor modellerne med lang tidshorisont har en svag præcision. Dette skyldes at Billetsalgsdata, er den mest signifikante variabel og fjernes den falder præcisionen markant. 
 Lasso-regressionen er på 3, 7 og 10 dage og opnår de laveste RMSE-værdier og vurderes som den mest robuste model. Grundet den lille forskel på prædiktionen på flere måneder, så vælges Lasso til prædiktionen, da det vil øge reproducerbarheden. Cross-validation viser en begrænset forskel mellem test- og CV-RMSE, hvilket indikerer en god generaliseringsevne. Da modellen under testen ikke viste tegn på overfitting, kan den anvendes på ukendte data og nye hjemmekampe. Et datadrevet prognoseværktøj vil skabe en betydelig værdi for Viborg FF, da det vil kunne optimere ressourceplanlægningen, reducere spild og styrke beslutningsgrundlaget. implementeringen vurderes realistisk i henhold til deres nuværende data modenhed, særligt ved integrering i eksisterende Power Bi systemer.
 
@@ -1565,6 +1569,8 @@ saveRDS(VFF_Komplet1, file = "VFFdata/VFF_Komplet.rds")
 
 
 ### Transfer data 
+Kort inden afleveringen og ved sidste test bemærkede vi, at transfermarkt-delen pludselig ikke var funktionel grundet manglende adgang / forbindelse til WorldFootballR, som vedligeholdelses via GitHub. Derfor har vi kommenteret hele den del af koden i vores Quarto-fil, og blot indlæst de RDS-filer som vi skabte under dataindsamlingen. VFFs samlet variabler indeholder derfor de oprindelige tiltænkte data for transfers.
+
 Transferdata har været meget svære at få fingrene i, da de fleste hjemmesider med data på området er utilgængelige for os.
 Vi har derfor fundet et open-source-projekt, skabt af en eller flere privatpersoner, som gør det lettere at hente fodbolddata i R.
 Pakken hedder worldfootballR [@worldfootballR]. Pakken blev den 18. september 2025 arkiveret og bliver ikke længere vedligeholdt.
@@ -1574,6 +1580,16 @@ worldfootballR indeholder blandt andet transferdata fra Transfermarkt(en af verd
 Argumentet force = TRUE betyder, at pakken geninstalleres, selv hvis den allerede er installeret i samme version.
 Hvis R spørger om opdatering af afhængige pakker, vælges 3 for "None", så eksisterende pakker ikke opdateres, da det ikke er nødvendigt.
 Her er koden der kan køres for at installere pakken: devtools::install_github("JaseZiv/worldfootballR", force = TRUE). 
+
+Indlæser den færdigbehandlede transfer-RDS-fil.
+
+
+
+```{r}
+total_all <- readRDS("VFFdata/TransfermarktData.rds")
+```
+
+
 
 Indlæsning af nødvendige pakker.
 
@@ -1598,10 +1614,10 @@ informationer om hvilke sæsoner de har været i Superligaen, som skal bruges ti
 
 
 ```{r}
-vff_hjemmekampe <- readRDS("VFFdata/superstatsvff.rds")
-sæsoner <- vff_hjemmekampe |>
-  distinct(sæson) |>          # distinct(sæson) sikrer, at hver sæson kun optræder en gang.
-  pull(sæson)                 # pull(sæson) konverterer kolonnen til en vektor.
+# vff_hjemmekampe <- readRDS("VFFdata/superstatsvff.rds")
+# sæsoner <- vff_hjemmekampe |>
+#   distinct(sæson) |>          # distinct(sæson) sikrer, at hver sæson kun optræder en gang.
+#   pull(sæson)                 # pull(sæson) konverterer kolonnen til en vektor.
 ```
 
 
@@ -1612,9 +1628,9 @@ as.integer() konverterer værdien fra tekst til en numerisk værdi for årstalle
 
 
 ```{r}
-år <- sæsoner |>
-  substr(1, 4) |>
-  as.integer()
+# år <- sæsoner |>
+#   substr(1, 4) |>
+#   as.integer()
 ```
 
 
@@ -1624,7 +1640,7 @@ Ved kun at vælge år, som er større eller lig med 2002.
 
 
 ```{r}
-år <- år[år >= 2002]
+# år <- år[år >= 2002]
 ```
 
 
@@ -1634,7 +1650,7 @@ bliver en dataframe med transferdata for hver sæson.
 
 
 ```{r}
-list_of_transfers <- list()
+# list_of_transfers <- list()
 ```
 
 
@@ -1647,27 +1663,21 @@ For loopet kører derfor en gang for hvert år i vektoren år.
 ```{r}
 #| message: false
 
-for (i in seq_along(år)) {
-  # Henter et startår ad gangen fra vektoren år.
-  y <- år[i]
-  #> Opbygger URL til Viborg FF's Transfermarkt-side for den givne sæson.
-  #> paste0 sammensætter året og URL'en uden mellemrum til en samlet streng.
-  url <- paste0(
-    "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/", y)
-  #> Henter alle transfers (sommer + vinter) for den pågældende sæson.
-  #> og gemmer resultatet i listen, som f.eks. Viborg_2002.
-  #> tm_team_transfers() henter alle spillertransfers for VFF.
-  #> tryCatch() gør, at hvis et år fejler (f.eks. pga. connection/timeout/blokering),
-  #> så stopper Quarto-renderen ikke – i stedet gemmes NULL for det år.
-  list_of_transfers[[paste0("Viborg_", y)]] <- tryCatch(
-    tm_team_transfers(team_url = url, transfer_window = "all"),
-    error = function(e) NULL)
-  #> Udskriver status i konsollen, så kan man se når data er hentet.
-  #> message() er slået fra i PDF via chunk option: #| message: false
-  message("Henter data fra året: ", y)
-  # Lille pause for at mindske risiko for blokering/throttling hos Transfermarkt.
-  Sys.sleep(3)
-}
+# for (i in seq_along(år)) {
+#   # Henter et startår ad gangen fra vektoren år.
+#   y <- år[i]
+#   #> Opbygger URL til Viborg FF's Transfermarkt-side for den givne sæson.
+#   #> paste0 sammensætter året og URL'en uden mellemrum til en samlet streng.
+#   url <- paste0("https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/", y)
+#   #> Henter alle transfers (sommer + vinter) for den pågældende sæson.
+#   #> og gemmer resultatet i listen, som f.eks. Viborg_2002.
+#   #> tm_team_transfers() henter alle spillertransfers for VFF.
+#   list_of_transfers[[paste0("Viborg_", y)]] <- tm_team_transfers(
+#     team_url = url,                 # team_url angiver URL’en til holdets Transfermarkt side.
+#     transfer_window = "all")        # transfer_window = "all" betyder, at både sommer og vintertransfers hentes.
+#   # Udskriver status i konsollen, så kan man se når data er hentet..
+#   message("Henter data fra året :", y, "\n")
+# }
 ```
 
 
@@ -1677,7 +1687,7 @@ bind_rows() binder alle tabellerne sammen under hinanden og laver et stort datas
 
 
 ```{r}
-total_transfers <- bind_rows(list_of_transfers)
+# total_transfers <- bind_rows(list_of_transfers)
 ```
 
 
@@ -1688,11 +1698,11 @@ dplyr:: er benytet da nogen får fejl ved select uden  dplyr:: foran, da andre p
 
 
 ```{r}
-total_transfers <- total_transfers |>
-  dplyr::select(-team_name, -league, -country, -player_url, -player_position,
-                -player_age, -player_nationality, -club_2, -league_2,
-                -country_2, -in_squad, -appearances, -goals,
-                -minutes_played, -transfer_notes)
+# total_transfers <- total_transfers |>
+#   dplyr::select(-team_name, -league, -country, -player_url, -player_position,
+#                 -player_age, -player_nationality, -club_2, -league_2,
+#                 -country_2, -in_squad, -appearances, -goals,
+#                 -minutes_played, -transfer_notes)
 ```
 
 
@@ -1702,8 +1712,8 @@ clean_names() omdanner f.eks. Transfer Fee til transfer_fee.
 
 
 ```{r}
-total_transfers_clean <- total_transfers |>
-  clean_names()                                # Renser kolonnenavnene med clean_names() fra janitor.
+# total_transfers_clean <- total_transfers |>
+#   clean_names()                                # Renser kolonnenavnene med clean_names() fra janitor.
 ```
 
 
@@ -1713,11 +1723,11 @@ Opretter en ny sæson kolonne med den nuværende ved hjælp af mutate, som bruge
 
 
 ```{r}
-total_transfers_clean <- total_transfers_clean |>
-  #> Opretter sæsonformatet YYYY/YYYY+1 ud fra sæsonens startår.
-  #> Sammensættes med paste0 med / imellem start og slut år. + 1 giver korrekt slut år i sæson strengen.
-  #> as.numeric, som numerisk værdi. 
-  mutate(season_format = paste0( season, "/", as.numeric( season) + 1))  
+# total_transfers_clean <- total_transfers_clean |>
+#   #> Opretter sæsonformatet YYYY/YYYY+1 ud fra sæsonens startår.
+#   #> Sammensættes med paste0 med / imellem start og slut år. + 1 giver korrekt slut år i sæson strengen.
+#   #> as.numeric, som numerisk værdi. 
+#   mutate(season_format = paste0( season, "/", as.numeric( season) + 1))  
 ```
 
 
@@ -1727,8 +1737,8 @@ Igen bruges select( med - foran den kolonne, som defor fravælges).
 
 
 ```{r}
-total_transfers_clean <- total_transfers_clean |> 
-  dplyr::select(- season)
+# total_transfers_clean <- total_transfers_clean |> 
+#   dplyr::select(- season)
 ```
 
 
@@ -1739,8 +1749,8 @@ og kun beholde rækker hvor is_loan == FALSE.
 
 
 ```{r}
-transfers <- total_transfers_clean |> 
-  filter(is_loan == FALSE)
+# transfers <- total_transfers_clean |> 
+#   filter(is_loan == FALSE)
 ```
 
 
@@ -1750,8 +1760,8 @@ Fjerner observationer uden registreret transfersum ved at filtrere alle rækker 
 
 
 ```{r}
-transfers <- transfers |> 
-  filter(!is.na(transfer_fee))
+# transfers <- transfers |> 
+#   filter(!is.na(transfer_fee))
 ```
 
 
@@ -1760,31 +1770,31 @@ Beregner samlet transferøkonomi pr. sæson samt antallet af transfers.
 
 
 ```{r}
-total_all <- transfers |>
-  # Grupperer data på sæson, så beregningerne foretages separat for hver sæson.
-  group_by(season_format) |>
-  # Opsummerer transferdata for hver sæson.
-  # Tager mange rækker pr. sæson og samler dem til en række pr. sæson.
-  summarise(
-    #> Beregner samlede transferindtægter pr. sæson.
-    #> Udvælger kun transfers hvor transfer_type er "Departures" som er spiller afgange. 
-    #> og summerer transfer_fee for dem. 
-    total_income = sum(transfer_fee[transfer_type == "Departures"]),
-    #> Beregner samlede transferudgifter for sæsonen (spillerkøb).
-    #> Samme koncept som før. Bare med spiller tilgange (Arrivals)
-    total_expense = sum(transfer_fee[transfer_type == "Arrivals"]),
-    # Nettobalance beregnes som indtægter minus udgifter.
-    net_balance = total_income - total_expense,
-    #> Antal transfers i sæsonen (både køb og salg).
-    #> Tæller antallet af observationer for hver sæson.
-    #> n() svarer til det samlede antal transfers i sæsonen.
-    antal_transfers = n()) |> 
-  #> Fjerner gruppering efter summarise.
-  #> Så datasættet igen behandles som et almindeligt ugrupperet datasæt.
-  ungroup() |> 
-  #> Sorterer sæsonerne i faldende rækkefølge (nyeste først).
-  #> arrange(desc) sørger for at arrangere i faldende rækkefølge.
-  arrange(desc(season_format))
+# total_all <- transfers |>
+#   # Grupperer data på sæson, så beregningerne foretages separat for hver sæson.
+#   group_by(season_format) |>
+#   # Opsummerer transferdata for hver sæson.
+#   # Tager mange rækker pr. sæson og samler dem til en række pr. sæson.
+#   summarise(
+#     #> Beregner samlede transferindtægter pr. sæson.
+#     #> Udvælger kun transfers hvor transfer_type er "Departures" som er spiller afgange. 
+#     #> og summerer transfer_fee for dem. 
+#     total_income = sum(transfer_fee[transfer_type == "Departures"]),
+#     #> Beregner samlede transferudgifter for sæsonen (spillerkøb).
+#     #> Samme koncept som før. Bare med spiller tilgange (Arrivals)
+#     total_expense = sum(transfer_fee[transfer_type == "Arrivals"]),
+#     # Nettobalance beregnes som indtægter minus udgifter.
+#     net_balance = total_income - total_expense,
+#     #> Antal transfers i sæsonen (både køb og salg).
+#     #> Tæller antallet af observationer for hver sæson.
+#     #> n() svarer til det samlede antal transfers i sæsonen.
+#     antal_transfers = n()) |> 
+#   #> Fjerner gruppering efter summarise.
+#   #> Så datasættet igen behandles som et almindeligt ugrupperet datasæt.
+#   ungroup() |> 
+#   #> Sorterer sæsonerne i faldende rækkefølge (nyeste først).
+#   #> arrange(desc) sørger for at arrangere i faldende rækkefølge.
+#   arrange(desc(season_format))
 ```
 
 
@@ -2158,7 +2168,6 @@ Vi laver en stor lineær regressionsmodel for at afdække potentielle sammenhæn
 
 
 ```{r}
-#| label: lst-stor-model
 stor_lm_model <- lm(
   tilskuere ~ temp_dry + wind_speed + nedbør_seneste_7_timer +
     ugedag + placering_lag_hjemme + placering_lag_ude + mål_seneste_3_hjemme
@@ -2425,7 +2434,6 @@ Her beregner vi VIF på modellen der kan forudsige flere måneder i forvejen
 
 
 ```{r}
-#| label: lst-vif-stor-model
 vif(stor_lm_model_flere_måneder)
 ```
 
@@ -3068,7 +3076,6 @@ sorter efter den bedste (laveste) MSE.
 
 
 ```{r}
-#| label: lst-metrics 
 metrics_samlet_alle <- bind_rows(
   metrics_lm,
   metrics_ridge,
@@ -3084,7 +3091,6 @@ Vi ser resultatet
 
 
 ```{r}
-#| label: lst-print-metrics
 print(metrics_samlet_alle)
 ```
 
@@ -3796,7 +3802,7 @@ ggplot(eval_data, aes(x = Tidspunkt, y = Prediktion)) +
 
 
 
-## Data i en forretningskontekst
+# Data i en forretningskontekst 
 
 Industri:
 Superligaklubber opererer indenfor den professionelle danske fodbold industri, som er integreret i den bredere danske oplevelse- og underholdningsindustri(Palle). Den primære kerneydelse er afvikling af fodboldkamp. Her sker værdiskabelsen gennem underliggende mekanismer knyttet til komplementære serviceydelser, som forplejning, faciliteter og øvrige tilknyttede tilbud.
@@ -3821,7 +3827,7 @@ Gøre ting forskelligt samme produkttype Forskellige features
 ![Tabel](tabel.png){#tabel width="40%"} 
 
 
-## Yderligere analyse {#sec-analyse}
+# Yderligere analyse {#sec-analyse}
 
 Datagrundlag og udvælgelse af variabler
 Der er indsamlet data for variabler som der antages at være relevante for at forudsige tilskuerantallet for VFFs kommende hjemmekampe. 
@@ -3877,7 +3883,7 @@ CV-RMSE: 3 dage før kamp = 205, flere måneder = 1406.
 
 Forskellen mellem test-RMSE og CV-RMSE er ikke signifikant. derfor kan konkluderes at der ikke er tegn på overfitting i modellen.
 
-## CRISP-DM {#sec-crispdm}
+# CRISP-DM {#sec-crispdm}
 
 Forretningsforståelse
 
