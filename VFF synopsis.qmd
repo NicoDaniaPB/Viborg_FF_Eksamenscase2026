@@ -106,7 +106,7 @@ Prognosen gør det muligt for Viborg FF at kunne justere aktiveringen af billett
 Viborg FF befinder sig i dag på fase 2 i Gartner’s Data Governance Maturity Model [@Data_i_en_forretningskontekst]. På dette niveau har organisationen erkendt grundlæggende behov for at øge deres dataindsats. Et centralt tiltag er implementeringen af Power BI-dashboards, som skal øge datatilgængeligheden på tværs af afdelingerne og dermed understøtte en mere datainformeret drift [@sec-palleolga]. For at kunne afslutte fase 2 bør Viborg FF fokusere på at sikre, at alle relevante afdelinger har adgang til dashboards, samt etablere en data governance-struktur, der understøtter datakvalitet, ejerskab og standardiserede processer.
 Følgende datamodenhed betyder, at Viborg FF placeres i fase 2 i forhold til deres dataindsats. Organisationen er i stand til at anvende data til at forstå sammenhænge, mønstre og adfærd, men de er endnu ikke i mål med at anvende data på tværs af afdelingerne for at optimere forrentning indsigten [@sec-palleolga]. Det næste naturlige skridt er derfor at bevæge sig mod fase 3, hvor data bruges aktivt at kunne opstille konkurrenceparametre og implementere data analytiske værktøjer og skabe strategiske fordele.
 På baggrund af deres nuværende placering i data modenhed og data indsats, kan det konkluderes, at implementeringen af et nyt analytisk system vil være muligt på sigt. Dette forudsætter dog, at Viborg FF først færdiggør fase 2-initiativerne, så organisationen står på et solidt fundament med klare processer, datatilgængelighed og en governance struktur, som skal understøtte, før nye systemer integreres i datainfrastrukturen [@Data_i_en_forretningskontekst].
-
+[#sec-analyse]
 
 ## Væsentligste konklusioner
 Formålet med projektet var at undersøge, hvordan machinelearning-modeller kan forudsige tilskuerantallet til Viborg FF hjemmekamp på forskellige tidspunkter før kampstart, samt vurdere muligheden for praktisk implementering givet klubbens data modenhed. 
@@ -130,10 +130,6 @@ Projektet demonstrerer altså, hvordan kombinationen af data & statistiske metod
 ## Bilag
 
 \appendix
-
-## Dataforståelse (husk tankegang fra CRISP-DM)
-
-## Dataklargørelse
 
 ### Data fra Superstats 
 Upload af relevante pakker.
@@ -2958,7 +2954,113 @@ ggplot(eval_data, aes(x = Tidspunkt, y = Prediktion)) +
 
 ## Data i en forretningskontekst
 
-![Tabel.](tabel.png){#fig-tabel width="40%"}
+Industri:
+Superligaklubber opererer indenfor den professionelle danske fodbold industri, som er integreret i den bredere danske oplevelse- og underholdningsindustri(Palle). Den primære kerneydelse er afvikling af fodboldkamp. Her sker værdiskabelsen gennem underliggende mekanismer knyttet til komplementære serviceydelser, som forplejning, faciliteter og øvrige tilknyttede tilbud.
+
+Industriens geografiske omfang er primært lokalt og regionalt, idet Viborg FF konkurrerer i den danske Superliga og dermed er underlagt Det Danske Klublicenssystem, som regulerer turneringsstrukturer, licenskrav og de økonomiske vilkår. 
+
+branche
+Viborg FF er registreret under NACE-branchen: 931200 Drift af sportsklubber (https://www.proff.dk/firma/viborg-ff-prof-fodbold-as/viborg/idr%C3%A6tforeninger-og-klubber/GKYJDXI10O5). I denne branche består aktørerne af kommercielle organisationer som opererer med professionel sport, specifikt elitefodbold. Klubbernes kerneydelser er at levere sportslige oplevelser, og de fungerer derfor hovedsageligt til forbrugere og samarbejdspartnere.
+
+Markedet:
+Markedet for professionel elitefodbold henvender sig til et differentieret marked, som består af både et B2C og et B2B. B2C-markedet består primært af lokale og regionale fans, familier, unge og fodboldinteresserede, som søger underholdning og fællesskab(palle). Her spiller loyalitet og emotionel tilknytning en central rolle ved værdiskabelsen. På B2B markedet henvender organisationen til kunderne gennem sponsorater, netværksarrangementer og komplementære ydelser, som leje af skybox og VIP-oplevelser. 
+
+Konklusion:
+På tværs af industriens strukturelle rammer, branchens karakteristika og markedets segmenter fremstår Viborg FF’s tilskuertal som tæt forbundet med klubbens evne til at forstå og imødekomme sine kunder. I den professionelle fodbold industri skabes værdien ikke alene gennem afviklingen af kampene, men gennem de komplementære serviceydelser, der præger den samlede oplevelse. Som aktør i NACE‑branchen for drift af sportsklubber leverer Viborg FF sportslige oplevelser til både forbrugere og samarbejdspartnere, hvilket gør publikums engagement centralt for klubbens drift. Markedets opdeling i B2C‑fans og B2B‑erhvervspartnere viser, at efterspørgslen formes af både emotionelle, sociale og kommercielle mekanismer. På denne baggrund bliver viden om tilskuertal væsentlig for klubbens planlægning og værdiskabelse, da den understøtter en mere målrettet indsats over for de segmenter, der udgør fundamentet for Viborg FF’s aktiviteter.
+
+Business unit level: (Kritisk realisme)
+
+De forskellige afdelinger i organisationen.
+Hvordan brugen af data gavner på det operationelle niveau.
+Gøre ting forskelligt samme produkttype Forskellige features
+
+![Tabel](tabel.png){#tabel width="40%"} 
+
+
+## Yderligere analyse {#sec-analyse}
+
+Datagrundlag og udvælgelse af variabler
+Der er indsamlet data for variabler som der antages at være relevante for at forudsige tilskuerantallet for VFFs kommende hjemmekampe. 
+
+Opdeling af data: træning og testdatasæt
+Dataene fordeles i 2 kategorier: træningsdata og testdata, som opdeles med et split på 70%/30%. Her benyttes træningsdata til at træne modellerne, og testdata til at teste modellernes performance. Data opdeles tilfældigt for at reducere overfitting & mindske bias.
+
+Derudover er der oplyst data for 3, 7 og 10 dage før selve kampen, og følgende data er brugt som inputvariabler (dvs x-variabel). 
+
+Modelopdeling efter tidshorisont
+Der er lavet modeller for følgende tidsperiode: 
+3 dage før kampstart
+7 dage før kampstart
+10 dage før kampstart
+Flere måneder før kampstart
+
+Overlappende billetsalgsdata & konsekvenser
+Billetsalg variablerne er kumulative. Her vil billetsalget 3 dage før kampstart også indeholde salget 7 og 10 dage før. Derfor vil datapunkterne stige systematisk desto tættere man kommer på kampdagen. Dette vil øge risikoen for overfitting og for fortolkningen af modellerne på tværs af tidshorisonterne.
+Hvis alle 3 billetssalgsvariabler inkluderes samtidigt, vil der opstå perfekt multikollinearitet, da variablerne vil forklare hinanden. Det betyder at beregningen for variance inflation factor (VIF) resultat vil være ukorrekt. Modellerne tættere på kampdagen, har en signifikant bedre data tilgængelige, hvilket vil betyde at den model der er tættest på kampdagen, vil sandsynligvis have den bedste performance og omvendt så vil modellerne med den længste tidshorisont sandsynligvis have en lavere forklaringskraft.
+I følgende analyse vurderes modellerne ud fra nedenstående nøgletal:
+R^2 (determinationskoefficienten)
+MSE
+RMSE (kvadratroden af MSE)
+
+Lineære modeller, multikollinearitet og variabel udfordringer
+For hver tidsperiode estimeres en lineær regressionsmodel. De første modeller havde en R²-værdi på 0,9873, hvilket indikerer at modellen forklarede 98% af variationen i tilskuertallet. Ud fra følgende kode (::KODE HVOR VI FINDER FØLGENDE::) blev det observeret at der var 12 variabler, som skabte lineær multikollinearitet med andre variabler, da modellen indeholdte redundante versioner. 
+Efter en reducering af de variabler, som var vurderet redundante, kunne VIF-testen gennemføres uden nogle inputvariabler var lineært afhængige af hinanden(::VIF TEST::)
+
+Endelig VIF-evaluering & modelstabilitet
+Ved VIF analysen er alle variablerne indenfor intervallet 1 - 5, hvilket indikerer, at der er en acceptabel multikollinearitet. VIF-værdien afspejler variablernes korrelation med øvrige variabler. En værdi på over 5 indikerer alvorlig multikollinearitet, hvilket ikke var tilfældet for følgende modeller. To af variablerne havde en VIF-værdi på mere end 3. Hvilket førte til en reduktion i variablerne, som ikke havde signifikant betydning for forklaringsgraden, da R²-værdien var på 0,9889, Hvilket betyder at 98% af variationen for output variablen kan forklares af modellen
+
+Når man fjerner billetsalgs-variablen. Resultatet var, at R^2 faldt til hele 0.6153, hvilket er en fald på over 30%. Dette illustrerer også, hvor meget billetsalg data-variablen forklarer af variationen. Disse trin blev gentaget for alle fire modeller med de bestemte tidshorisonter. 
+
+Beregning af nøgletal for lineære modeller - sammenligning af modeller på tværs af tidshorisonter
+Modellernes nøgletal er beregnet vha. en funktion, som beregnede følgende MSE, RMSE & R^2 og samlet i en tibble. analysen viser tydeligt en sammenhæng mellem tidshorisont og performance. 3-dag modellen havde en R^2 på 0,9823 med en RMSE på 212,9, hvilket svarer til en gennemsnitlig estimering fejl på +/- 213 tilskuere. Modellen der skal estimere flere måneder før kampstart har en  R^2 på 0,32782 og RMSE = 1262,995, hvilket giver en gennemsnitlig estimeringsfejl på +/- 1263. Resultaterne viser at 3 dage før kan 98% af variationen forklares af modellen hvor flere måneder før kan kun 32% af variationen forklares af modellen. Dette viser hvor høj grad at modellen afhænger af data fra særligt billetsalget. 
+(:: sæt visualisering ind her ::)
+Her understøtter visualiseringen tidshorisontens påvirkning på modellernes performance og understreger den centrale rolle som billetsalg data har for modellerne.
+ 
+Ridge-, Lasso- og Best subset selection metode: 
+Ridge, Lasso og Best Subset Selection er metoder til modelvalg og reduktion af overfitting. Ridge krymper koefficienternes størrelse og stabiliserer modellen ved multikollinearitet, uden at fjerne variablerne, mens Lasso både krymper og kan sætte koefficienterne til nul. 
+Best Subset Selection afprøver alle mulige kombinationer af variabler og vælger modellen med lavest RMSE. I analysen anvendes de til at vælge den model der opnår den bedst mulige bias-variance trade-off. den endelige model udvælges på baggrund af laveste RSME
+
+Samling af modelresultater (hvad med 7 og 10 dage?)
+resultaterne (MSE, RMSE & R^2), samles i en tibble. modellen der performer bedst på på 3 dage er lasso, med en RMSE på 186,5461 & R^2 på 0,9864. modellen på 7 dage, som performer bedst er Lasso med en RMSE på 347 med en R^2 på 0,952957. på 10 dage performer Lasso bedst med en RMSE på 503,8620 med en R^2 på 0,9010385. til sidst er modellen, som performer bedst med en tidshorisont på flere måneder lineær regression med en RMSE på 1262,9952 med en R^2 på 0,3782062. Følgende oversigt er vedlagt under:
+ INDSÆT TABEL METRICS_SAMLET_ALLE
+
+Cross validation
+Lasso-regression-modellen performede bedst med den laveste RMSE. Nu testes Cross Validation RMSE. Der undersøges nu, hvordan modellens generaliseringsevne på ukendte data. Hvis Test-RMSE har en stor afvigelse CV-RMSE, så er der er indikation på overfitting. Her foretages der “k-fold cross validation”, da den giver en lavere varians end LOOCV, og oftes er bedre i praksis. LOOCV blev udeladt, da formålet er at vurdere forskellen og ikke vil give mere indsigt
+
+Det resulterede i følgende resultater: 
+Test-RMSE: 3 dage før kamp =186, flere måneder =1263. 
+CV-RMSE: 3 dage før kamp = 205, flere måneder = 1406. 
+
+Forskellen mellem test-RMSE og CV-RMSE er ikke signifikant. derfor kan konkluderes at der ikke er tegn på overfitting i modellen.
+
+## CRISP-DM {#sec-crispdm}
+
+Forretningsforståelse
+
+undersøgelsen tager udgangspunkt i Viborg FF nuværende behov for et datadrevet værktøj til at at estimere hvor mange tilskuer der kommer. Der identificeres relevante variabler med henblik på at udvikle en model, der kan understøtte kampplanlægning og optimere ressourceallokering. 
+
+Dataforståelse
+
+For at få et godt overblik og forstå dataen samt kvaliteten af denne, er der indsamlet historiske data helt tilbage fra 2002. Der er blevet undersøgt eksterne faktorer, som kan have indflydelse på tilskuerantallet som helligdage, feriedage, vejrforhold, modstanderdata, transfer data, historik & form (antal point i x antal seneste kampe, antal scorede mål mm.) i håb om at at kunne identificere nogle indsigtsfulde mønstre. Data på disse eksterne kilder (Superstats, transfermarkt, date.nager mm.) ajourføres og opdateres næsten på live niveau, hvorfor disse er meget tilgængelige og uden store krav til samarbejdsaftaler, tilladelser eller betaling for brug af data mm.
+
+Dataklargøring 
+
+I projektet har der været mange overvejelser i forbindelse med at opnå den bedst mulige datakvalitet og et struktureret datasæt. Der er renset i datasættet for fejl ved at fjerne manglende værdier, rense overensstemmelser med formater, for at sikre kvaliteten af dataen, som har direkte indflydelse på modellernes præcision og validitet. Denne fase omfatter udvælgelse af variabler, rensning og sammensmeltning af indsamlede data, ved brug af programmering i R. Resultatet af dataklargøringsprocessen er et struktureret og konsistent datasæt, som er egnet og klar til modellering. Datasættet danner grundlag for modelleringsprocessen i Crisp-DM processen, hvor machine learning og statistiske modeller anvendes til at forudsige tilskuertallet til en af Viborg FF’s hjemmebanekampe.
+
+Modellering 
+Dataen blev opdelt 70/30 i trænings- og testdata. Opdelingen skete helt tilfældig. Testdatasættet skal anvendes til at "lære" modellen de mønstre, som findes i dataen. Det er på baggrund af de indsamlede observationer , at modellen fitter sine parametre. I træningsdatasættet lærte modellen de parametre, der er sat en "hat" over - dvs. de estimeret værdier. De estimeret værdier blev anvendt på resten af dataen, nemlig på test-data. Ved test-dataen blev intet estimeret , men der blev anvendt dem der allerede var fra træningsdataene.
+Efterfølgende blev der lavet flere forskellige modeller. Formålet med opgaven, var at finde den model der bedst kan estimere antallet af tilskuere for VFFs hjemmekampe. Til at afgøre hvilken model der er bedst, så blev MSE undersøgt (mean square error). MSE er et mål for, hvor godt modellen passer til dataene. MSE beregnes som gennemsnittet af de kvadrerede fejl. Jo lavere MSE, jo mindre fejl har modellen, og jo bedre er det. Sagt med andre ord: Den bedste model er den model med den laveste MSE. Nogle af de modeller, som der blev arbejdet med, var blandt andet: En multipel lineær regressionsmodel. “krympe”- metoder (både Lasso- og ridge regression), subset selection metoder (specificere hvilken en). 
+Efter at modellen med den laveste MSE blev fundet, var næste step at sammenligne den med cross validation MSE. Cross-validation blev anvendt til at estimere test error, så modellens performance kunne evalueres. Dette er også relevant i forhold til at vælge det rette niveau af fleksibilitet. 
+
+Evaluering
+På baggrund af de forskellige modeller, som blev testet, var det Lasso-regression modellen, som var den bedste model med lavest RMSE på testdatasættet. Jo tættere på kampdagen, jo mere præcis er modellen, og jo bedre er forklaringsgraden R². Modellerne med længere tidshorisont præsterer derfor dårligere, da vigtige variabler, som billetsalgsdata, ikke er tilgængelige i samme grad.
+Der blev også anvendt k-fold cross-validation for at vurdere generaliseringsevnen på modellerne. Der var ikke tegn på overfitting, da det kun var begrænsede forskelle, der var på cross-validation-RMSE og test-RMSE. På baggrund af dette må modellerne være effektive også på nye og ukendte data. 
+Modellerne vurderes til at kunne skabe forretningsmæssig værdi for Viborg FF og opfylder derfor projektets målsætninger.
+
+Implementering
+Det vurderes, at implementeringen er realistisk på baggrund af Viborg FF’s nuværende datamodenhed. Viborg FF befinder sig på nuværende tidspunkt i fase 2 i Gartner’s Data Governance Maturity Model, hvilket vil sige, at de i stigende grad anvender data som et værktøj til deres beslutningsprocesser. Den nye prognosemodel bør derfor implementeres i virksomhedens eksisterende Power BI-løsninger for at opnå en mere professionel og datadrevet kampafvikling.
+I praksis kan modellen hjælpe Viborg FF med bedre ressourceallokering og mere effektive markedsføringsindsatser ved kampe med lavt fremmøde. Det er derfor vigtigt, at Viborg FF fortsat arbejder med at sikre deres datakvalitet og effektive Power BI-rapporter, for at det lykkes med implementeringen.
+
 
 ## Transskriberede interviews og præsentationer 
 TurboScribe er brugt til at transskribere lydfilerne der blev optaget ved besøget hos Viborg FF [@turboscribe].
