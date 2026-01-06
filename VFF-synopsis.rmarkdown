@@ -40,6 +40,8 @@ options(OutDec = ",")
 pacman::p_load("knitr", "tinytex", "tidyverse") 
 ```
 
+
+
 <!-- Fjern ikke nedenstående kode. -->
 <!-- Den sørger for, at der kommer en liste over figurer og en liste over -->
 <!-- tabeller først og derefter nummererede sider. -->
@@ -133,49 +135,83 @@ Projektet demonstrerer altså, hvordan kombinationen af data & statistiske metod
 
 ### Data fra Superstats 
 Upload af relevante pakker.
+
+
 ```{r}
 pacman::p_load("tidyverse", "rvest", "stringr", "lubridate")
 ```
 
+
+
 Mappen VFFdata til opbevaring af data. Hvis den ikke eksistere, så bliver den oprettet.
+
+
 ```{r}
 if (!dir.exists("VFFdata")) dir.create("VFFdata")
 ```
 
+
+
 Først skal sæsonerne hvor VFF har været i Superligaen webscrapes. Så der ikke bliver hentet unødvenidgt meget data ned.
 Desuden er det reproducerbart og man slipper for at definere en vektor med år manuelt. Læser HTML-siden direkte fra URL'en med read_html og gemmer den i containeren html_superstats. Her hentes dataen fra [@superstatsweb].
+
+
 ```{r}
 html_superstats <- read_html("https://superstats.dk/hold/alltime?id=11&utm", encoding = "UTF-8") 
 ```
 
+
+
 Finder alle table-elementer på siden med html_elements. 
+
+
 ```{r}
 tables_sæsoner <- html_superstats |> html_elements("table")  
 ```
 
+
+
 map() anvender her funktionen html_table på hver tabel i tables_sæsoner.
 Det giver en liste af dataframes, en for hver html-tabel på siden.
+
+
 ```{r}
 tables_df <- map(tables_sæsoner, html_table)
 ```
 
+
+
 Det er tabel 3 der er den rigtige tabel, som indeholder de sæsoner VFF er i Superligaen. [[3]] trækker det tredje element ud af listen.
 Funktionen html_table() fra rvest konverterer html-tabellen til en dataframe.
+
+
 ```{r}
 tables_VFF <- (tables_sæsoner[[3]] |>  html_table()) 
 ```
 
+
+
 Fjerner den første række i tabellen den med NA-værdier. [-1, ] Tag alle rækker undtagen række 1, da 1 har - foran betyder det fjern. 
+
+
 ```{r}
 tables_VFF <- tables_VFF[-1, ] 
 ```
 
+
+
 Returnerer TRUE hvis tabellen indeholder mindst en NA. any er der nogen værdier? som er NA i tables_VFF? Output her er lig med FALSE, som ønsket.
+
+
 ```{r}
 any(is.na(tables_VFF))
 ```
 
+
+
 Udtrækker slutåret for hver sæson fra teksten 1999/2000, 2016/2017 osv. URL'en på Superstats bruger slutåret (f.eks. 2017 for sæsonen 2016/2017), så de sidste fire cifre i sæsonstrengen skal bruges i et loop senere for at finde de rigtige sæsoner Laver dem til integer (heltal). $ efter tables_VFF bruges til at hente kolonnen sa_son. |> efter betyder og så... gør noget mere. Resultatet:  [1] 2026 2025 2024 2023 2022 2017 2016 2014 2008 2007 2006 2005 2004 2003 2002 2001 2000 1999 1997 1996 1994. Så nu er VFF_sæsoner en vektor med start året for alle de år VFF har været i superligaen.
+
+
 ```{r}
 VFF_sæsoner <- tables_VFF$Sæson |> 
   #> Regex-forklaring af "\\d{4}$".
@@ -188,12 +224,20 @@ VFF_sæsoner <- tables_VFF$Sæson |>
   as.integer()
 ```
 
+
+
 Opretter en  list og gemmer i en container, som skal indeholde kampdata for superligakampe i de valgte år/sæsoner.
+
+
 ```{r}
 kampliste_samlede <- list()
 ```
 
+
+
 For-loopet looper gennem alle årene i vektoren VFF_sæsoner. VFF_sæsoner indeholder slutåret for hver sæson (f.eks. 2024 = sæson 2023/2024). Her hentes dataen fra [@superstatsweb].
+
+
 ```{r}
 for (y in VFF_sæsoner) {
   
@@ -238,23 +282,39 @@ for (y in VFF_sæsoner) {
 }
 ```
 
+
+
 Gemmer data
+
+
 ```{r}
 # Gemmer data i en RDS-fil i data mappen.
 saveRDS(kampliste_samlede, "VFFdata/superstatsliste.rds")
 ```
 
+
+
 Indlæs data igen fra RDS-filen. Alle andre steps før nu kan udkommenteres. 
+
+
 ```{r}
 gemt_kampliste <- readRDS("VFFdata/superstatsliste.rds")
 ```
+
+
 Konverterer til dataframe. Kombinerer alle lister til en samlet dataframe. bind_rows() binder alle tabellerne sammen under hinanden og laver et stort datasæt i en tibble.
+
+
 ```{r}
 kampe_df <- gemt_kampliste |> 
   bind_rows()
 ```
 
+
+
 Rensning af data. 
+
+
 ```{r}
 # Først skal rækkerne der kun indeholder runde nummer transformeres til en kolonne for sig selv.
 kampe_df <- kampe_df |> 
@@ -295,7 +355,11 @@ kampe_df <- kampe_df |>
   select(-find_runde)  
 ```
 
+
+
 Her renser vi dataene, giver kolonnerne passende navne, fjerner kolonne 7 (TV-logoer i billedformat på hjemmesiden), Vi fjerner overflødige rækker, filtrerer kun de kampe hvor der findes et resultat, og rydder op i tekstformater såsom tilskuertal og ugedage.
+
+
 ```{r}
 kampe_df <- kampe_df |>
   # # Fjerner kolonnen X7, kolonnen indeholdte TV-logoer i billedformat på hjemmesiden.
@@ -336,7 +400,11 @@ kampe_df <- kampe_df |>
       as.integer())
 ```
 
+
+
 Nye variabler og fortsat rensning af data. Her opdeles variablen dato_og_tidspunkt, som består af både dato og klokkeslæt, i to separate kolonner: dato og klokkeslæt.
+
+
 ```{r}
 kampe_df <- kampe_df |>  
   # separate() splitter teksten ved mellemrum (sep = " ").
@@ -346,12 +414,20 @@ kampe_df <- kampe_df |>
   mutate(klokkeslæt = hm(klokkeslæt))
 ```
 
+
+
 Trækker månederne ud - med unique, så f.eks. 05 kun optræder en gang i outputted osv. substr(dato, 4, 5) henter tegn 4 og 5 i dato-strengen, dvs. måneden. Superligaen starter typisk i juli/07 og slutter typisk i maj/05 / start juni/06
+
+
 ```{r}
 unique(substr(kampe_df$dato, 4, 5))
 ```
 
+
+
 Tilføj år til dato og ændrer formatet fra <chr> til <date>. Dato-kolonnen indeholder kun dag og måned (dd/mm), derfor skal det bestemmes, hvilket år kampene hører til. Det afhænger af Superligaens struktur, som blev kigget på lige før.
+
+
 ```{r}
 kampe_df <- kampe_df |>
   mutate(dato = paste0(
@@ -377,7 +453,11 @@ kampe_df <- kampe_df |>
       dmy())
 ```
 
+
+
 Opretter en samlet datetime-variabel (dttm) gør det nemmere når datasættet skal merges med andre datasæt senere. dato er et <date> objekt og klokkeslæt er et <Period> objekt. Når de lægges sammen, så bliver det et <dttm> objekt i stedet.
+
+
 ```{r}
 kampe_df <- kampe_df |> 
   mutate(
@@ -389,12 +469,20 @@ kampe_df <- kampe_df |>
 ```
 
 
+
+
 Trækker timerne ud med unique, så f.eks. 15 kun optræder en gang i outputted osv. 
+
+
 ```{r}
 unique(hour(kampe_df$tidsstempel))
 ```
 
+
+
 Laver en ny kategorivariable for tidsperiode i forhold til kampens starttidspunkt på dagen.
+
+
 ```{r}
 kampe_df <- kampe_df |> 
   mutate(
@@ -411,13 +499,21 @@ kampe_df <- kampe_df |>
         paste0(ugedag, "_aften"))))
 ```
 
+
+
 Her deles resultat-kolonnen op i to nye kolonner: separate() splitter tekst baseret på et separatortegn, her er det "-", som er mellem mål for hjemmeholdet og udeholdet. c("mål_hjemme", "mål_ude") er en charactervektor med navnet på de to nye kolonner, som resultatet skal splittes ud i. convert = TRUE betyder, at R automatisk konverterer tekst til tal, altså <int> i stedet for <chr>. 
+
+
 ```{r}
 kampe_df <- kampe_df |> 
   separate(resultat, into = c("mål_hjemme", "mål_ude"), sep = "-", convert = TRUE)
 ```
 
+
+
 Laver to nye kolonner med point til hjemme- og udeholdet. point_hjemme med if_else 3 point hvis hjemmeholdets mål > udeholdets mål. 1 point hvis mål_hjemme == mål_ude, ellers 0 point. point_ude fungerer omvendt for udeholdet. 
+
+
 ```{r}
 kampe_df <- kampe_df |> 
   mutate(
@@ -425,14 +521,22 @@ kampe_df <- kampe_df |>
     point_udehold = ifelse(mål_hjemme < mål_ude, 3, ifelse(mål_hjemme == mål_ude, 1, 0)))
 ```
 
+
+
 separate() deler kampnavnet i hjemme- og udehold, men på superstats hjemmeside er der mellem rum efter "-" ved hold med kun to bogstaver. str_trim() fjerner mellemrum i starten og slutningen af teksten, så " OB" bliver til "OB" og " VB" bliver til "VB".
+
+
 ```{r}
 kampe_df <- kampe_df |> 
   separate(kamp, into = c("hjemmehold", "udehold"), sep = "-") |> 
   mutate(hjemmehold = str_trim(hjemmehold), udehold   = str_trim(udehold))
 ```
 
+
+
 Sum af mål i de sidste 3 hjemmekampe lag. Mål i sidste tre hjemmekampe. Skal vise målene scoret i de sidste tre hjemmekampe op til den nye hjemmekamp.
+
+
 ```{r}
 kampe_df <- kampe_df |>
   #> arrange(sæson, tidsstempel): Sorterer alle kampe kronologisk inden for hver sæson.
@@ -461,13 +565,21 @@ kampe_df <- kampe_df |>
   ungroup()
 ```
 
+
+
 desc = descending, så datasættet vises i faldende rækkefølge igen. 
+
+
 ```{r}
 kampe_df <- kampe_df |> 
   arrange(desc(sæson), tidsstempel)
 ```
 
+
+
 Antallet af tilskuere ved seneste møde. Antallet af tilskuere sidst hjemmeholdet mødte samme modstander Indtil videre bliver default sat til 0. 
+
+
 ```{r}
 kampe_df <- kampe_df |> 
   #> Sorterer alle kampe kronologisk på tværs af alle sæsoner.
@@ -486,13 +598,21 @@ kampe_df <- kampe_df |>
   ungroup()
 ```
 
+
+
 desc = descending, så datasættet vises i faldende rækkefølge igen. 
+
+
 ```{r}
 kampe_df <- kampe_df |> 
   arrange(desc(sæson), tidsstempel)
 ```
 
+
+
 Point i sidste 3 hjemmekampe. Viser summen af point i de tre seneste hjemmekampe før den aktuelle kamp.
+
+
 ```{r}
 kampe_df <- kampe_df |>
   #> Sorterer kampe kronologisk inden for hver sæson.
@@ -519,14 +639,22 @@ kampe_df <- kampe_df |>
   ungroup()
 ```
 
+
+
 Placering lag. Fjerner sæsonen 1993/1994 fra datasættet. I denne sæson spiller VFF kun 18 kampe.
+
+
 ```{r}
 kampe_df <- kampe_df |>  
   # Beholder kun de kampe der IKKE!= er 1993/1994.
   filter(sæson != "1993/1994")
 ```
 
+
+
 Her ændres datasættet til en række pr. kamp pr. hold med pivot_longer() = dobbelt så mange rækker. Det giver 2 rækker pr. kamp (en for hjemmeholdet og en for udeholdet) Det gør det muligt at beregne point, målscore osv. pr. hold.
+
+
 ```{r}
 kampe_kloning <- kampe_df |>   
   pivot_longer(cols = c(hjemmehold, udehold),     # De to kolonner laves om til rækker.
@@ -548,7 +676,11 @@ kampe_kloning <- kampe_df |>
          mål_imod = if_else(hjemme_ude == "hjemmehold", mål_ude, mål_hjemme))
 ```
 
+
+
 Her beregnes stillingen løbende for hver runde.
+
+
 ```{r}
 stillinger <- kampe_kloning |>
   #>Starter med en række pr. hold pr. kamp og der grupperes efter sæson og hold.
@@ -601,7 +733,11 @@ stillinger <- kampe_kloning |>
   ungroup()                            # fjerner grupperingen bagefter.
 ```
 
+
+
 Strukturen i superligaen ændrer sig igennem årene. For VFF er sæsonen 2016/2017 helt unik, mens sæsonerne de er i Superligaen. Før 2016/2017 er anderldes og sæsonerne efter også er en kategori for sig. I sæsonen 2016/2017 er der et split i tabellen og det samme i sæsonerne efter. Først skal split runderne identificeres for hver sæson.
+
+
 ```{r}
 splitinfo <- stillinger |>  
   # Gruppere pr. sæson hvor splittet skal findes. 
@@ -616,13 +752,21 @@ splitinfo <- stillinger |>
   ungroup()                                             # Fjerner gruppering efter summarise
 ```
 
+
+
 Tilføjer split-information til stillingerne for hver sæson. left_join sikrer at alle rækker i stillinger bevares, og at max_runde samt split_runde bliver tilføjet ud fra sæsonen.
+
+
 ```{r}
 stillinger_split <- stillinger |>  
   left_join(splitinfo, by = "sæson")
 ```
 
+
+
 Top og bund skal låses fast ved split i de sæsoner med opdeling efter x-antal runder. Sådan at et hold i f.eks. bund 6 eller bund 8 ikke kan komme i top 6 og omvendt.
+
+
 ```{r}
 stillinger_split <- stillinger_split |> 
   
@@ -650,7 +794,11 @@ stillinger_split <- stillinger_split |>
   ungroup()
 ```
 
+
+
 Efter splitrunden er top og bund grupperne låst. Nu skal holdene sorteres inden for deres gruppe i hver runde.
+
+
 ```{r}
 stillinger_split <- stillinger_split |>  
   
@@ -686,7 +834,11 @@ stillinger_split <- stillinger_split |>
   ungroup()
 ```
 
+
+
 Henter bund-placeringer i runde 32 for 2016/2017. Da de efter 32 runde spiller play-off, som ikke giver point. 
+
+
 ```{r}
 bund32 <- stillinger_split |> 
   
@@ -696,8 +848,12 @@ bund32 <- stillinger_split |>
   select(sæson, hold, frys_plac = global_plac)
 ```
 
+
+
 Fryser bundholdenes placering efter runde 32 i sæsonen 2016/2017. I denne sæson spiller kun top-6 videre efter runde 32 om placeringer. 
 Joiner først deres placering fra runde 32 (frys_plac), og bruger den til at overskrive global_plac i runder efter 32.
+
+
 ```{r}
 stillinger_split <- stillinger_split |> 
   left_join(bund32, by = c("sæson","hold")) |> 
@@ -714,7 +870,11 @@ stillinger_split <- stillinger_split |>
   select(-frys_plac)
 ```
 
+
+
 Beregner placeringen før kampen (lag).
+
+
 ```{r}
 stilling_lag <- stillinger_split |>  
   
@@ -730,7 +890,11 @@ stilling_lag <- stillinger_split |>
   ungroup()
 ```
 
+
+
 Udtrækker lagget placering for hjemme- og udehold separat, så de kan joines tilbage på det originale kampdatasæt i to separate kolonner.
+
+
 ```{r}
 plac_hjemme <- stilling_lag |>  
   select(sæson, runde, hjemmehold = hold,
@@ -743,14 +907,22 @@ plac_ude <- stilling_lag |>
          placering_lag_ude = placering_lag)
 ```
 
+
+
 Tilføjer placering-lag til kampdata. Joiner på (sæson, runde, hjemmehold) og (sæson, runde, udehold).
+
+
 ```{r}
 kampe_df <- kampe_df |>  
   left_join(plac_hjemme, by = c("sæson", "runde", "hjemmehold")) |>  
   left_join(plac_ude,    by = c("sæson", "runde", "udehold"))
 ```
 
+
+
 Form i sidste 3 kampe ude og hjemme.
+
+
 ```{r}
 form_total <- kampe_kloning |>
   # Sorterer alle kampe kronologisk inden for hver sæson.
@@ -787,7 +959,11 @@ kampe_df <- kampe_df |>
   left_join(form_ude,    by = c("sæson", "runde", "udehold"))
 ```
 
+
+
 Mål i sæsonen hjemme + ude lagget før kampen. Beregn løbende sæsonmål pr. hold uanset hjemme/ude.
+
+
 ```{r}
 mål_sæson_lag <- kampe_kloning |>
   # Kampene sorteres kronologisk inden for hver sæson.
@@ -805,7 +981,11 @@ mål_sæson_lag <- kampe_kloning |>
   ungroup()
 ```
 
+
+
 Klargør data til join med hjemmehold.
+
+
 ```{r}
 mål_sæson_hjemme <- mål_sæson_lag |>
   select(
@@ -815,7 +995,11 @@ mål_sæson_hjemme <- mål_sæson_lag |>
     mål_sæson_lag_hjemmehold = mål_sæson_lag)
 ```
 
+
+
 Klargør data til join med udehold
+
+
 ```{r}
 mål_sæson_ude <- mål_sæson_lag |>
   select(
@@ -825,35 +1009,59 @@ mål_sæson_ude <- mål_sæson_lag |>
     mål_sæson_lag_udehold = mål_sæson_lag)
 ```
 
+
+
 Join mål lag tilbage på kampdatasættet.
+
+
 ```{r}
 kampe_df <- kampe_df |>
   left_join(mål_sæson_hjemme, by = c("sæson", "runde", "hjemmehold")) |>
   left_join(mål_sæson_ude,    by = c("sæson", "runde", "udehold"))
 ```
 
+
+
 Gemmer ændringer. 
+
+
 ```{r}
 saveRDS(kampe_df, "VFFdata/superstats.rds")
 ```
 
+
+
 Load ændringer. 
+
+
 ```{r}
 kampe_df <- readRDS("VFFdata/superstats.rds")
 ```
 
+
+
 Udvælger alle rækker hvor hjemmeholdet er VFF. Det giver en oversigt over alle VFF's hjemmekampe i datasættet.
+
+
 ```{r}
 vff_hjemmekampe <- kampe_df |> 
   filter(hjemmehold == "VFF")
 ```
 
+
+
 Test af hjemmekampene. 
 Output: 318. Det er klasse, da VFF ifølge Superstats har spillet 327 hjemmekampe all time. Sæsonen 1993/1994 indeholdte 9 hjemmekampe, så alle kampene er succesfuldt kommet med i tabellen.
+
+
 ```{r}
 paste("Antal hjemmekampe i perioden for VFF er:", nrow(vff_hjemmekampe))
 ```
+
+
 Tilføjer A, B, C og D kampe. Samt en beregning af uddnyttelsesgraden på Energi Viborg Arena. 
+
+
 ```{r}
 vff_hjemmekampe <- vff_hjemmekampe |> 
   # Opretter "udehold_rang" baseret på modstanderens styrke.
@@ -866,17 +1074,29 @@ vff_hjemmekampe <- vff_hjemmekampe |>
   mutate(udnyttelsesgrad_tilskuere = tilskuere / 9695) 
 ```
 
+
+
 Ser navnene på alle kolonnerne. 
+
+
 ```{r}
 names(vff_hjemmekampe) 
 ```
 
+
+
 Tæller antallet af kolonner.
+
+
 ```{r}
 ncol(vff_hjemmekampe) # Output: 24.
 ```
 
+
+
 Vælger rækkefølgen af kolonnerne med select. 
+
+
 ```{r}
 vff_hjemmekampe <- vff_hjemmekampe |>
   select(ugedag, tidsperiode, tidsstempel, runde, sæson,
@@ -889,47 +1109,77 @@ vff_hjemmekampe <- vff_hjemmekampe |>
   arrange(desc(tidsstempel)) # Faldende rækkefølge.
 ```
 
+
+
 Gemmer ændringer. 
+
+
 ```{r}
 saveRDS(vff_hjemmekampe, "VFFdata/superstatsvff.rds")
 ```
 
+
+
 ### Data fra DMI
 Upload af relevante pakker.
+
+
 ```{r}
 pacman::p_load("tidyverse", "rvest", "stringr", "janitor", "lubridate", "RSQLite")
 ```
 
+
+
 Vi starter med at indlæse Superstatsdata, da kampdatoerne skal bruges til at hente vejrdata.
+
+
 ```{r}
 vff_hjemmekampe <- read_rds("VFFdata/superstatsvff.rds")
 ```
 
+
+
 Hvis der findes en .Renviron-fil, så læses den ind her.
+
+
 ```{r}
 if (file.exists(".Renviron")) readRenviron(".Renviron")
 ```
+
+
 
 En .Renviron-fil bruges til, at R automatisk kan læse værdier feks. API-nøgler, selvom de ikke er synlige i selve koden.
 
 Sys.getenv() bruges i R til at hente oplysninger gemt i f.eks. .Renviron.
 Nøglen er døbt MY_API_KEY i .Renviron og derfor den der hentes.
 Den returerner i dette tilfælde en API-nøgle til DMI, da det er den der er gemt i filen.
+
+
 ```{r}
 api_nøgle <- Sys.getenv("MY_API_KEY")
 usethis::edit_r_environ()
 ```
 
+
+
 Kampdatoerne for VFF's hjemmekampe gemmes i kamp_datoer.
 Skal bruges i et loop, så der kun kommer vejrobservationer fra DMI på kampdage.
+
+
 ```{r}
 kamp_datoer <- vff_hjemmekampe$tidsstempel
 ```
 
+
+
 Opretter en tom liste og gemmer i dmi_list.
+
+
 ```{r}
 dmi_list <- list()
 ```
+
+
 
 Looper gennem alle kampdatoer en ad gangen og henter DMI data.
 Seq_along(kamp_datoer) laver en sekvens af 1, 2, 3, osv. 
@@ -938,6 +1188,8 @@ i bliver derfor hvert enkelt kampnummer i rækkefølgen.
 Formaterer kampens tidsstempel til det format DMI-API'en kræver.
 format() omdanner dato/tid til en tekststreng i et bestemt format.
 Her hentes dataen fra [@dmiweb]
+
+
 ```{r}
 #| message: false
 for (i in seq_along(kamp_datoer)) {
@@ -969,6 +1221,8 @@ for (i in seq_along(kamp_datoer)) {
 }
 ```
 
+
+
 lapply() kører en funktion på hvert element listen og returnerer en ny liste.
 function(x) ... hvad der skal trækkes ud fra hvert liste-element.
 x$features$properties henter den del af JSON-dataen,
@@ -976,32 +1230,46 @@ hvor DMI gemmer selve målingerne (temperatur, vind og andre variabler)
 $ bruges til at tilgå properties i listen.
 Resultatet bliver en ny liste (dmi_properties),
 hvor hvert element indeholder properties for en kamp.
+
+
 ```{r}
 dmi_properties <- lapply(dmi_list, function(x) x$features$properties)
 ```
+
+
 
 bind_rows() samler alle liste-elementer i en samlet data frame.
 .id = "kamp" tilføjer en kolonne med kampnummer.
 mutate() tilføjer/ændrer kolonner:
 kamp = konverterer kamp-id til heltal as.integer.
 kamp_dato = henter korrekt kampdato med kampnummeret.
+
+
 ```{r}
 dmi_df <- bind_rows(dmi_properties, .id = "kamp") |>
   dplyr::mutate(kamp = as.integer(kamp), kamp_dato = kamp_datoer[kamp])
 ```
 
+
+
 filter() vælger kun rækker, der opfylder betingelsen:
 %in% tester om parameterId findes i den angivne liste og
 beholder kun de to parametre, som skal bruges = temperatur og vind.
+
+
 ```{r}
 dmi_df <- dmi_df |>
   filter(parameterId %in% c("temp_dry", "wind_speed"))
 ```
 
+
+
 group_by() grupperer data efter kamp og parameter = temperatur/vind.
 slice_max() vælger den senest obsaverede måling.
 ungroup() fjerner gruppering så df fungerer normalt igen.
 Ender med eb temperatur og en vindmåling per kamp. 
+
+
 ```{r}
 dmi_df <- dmi_df |>
   group_by(kamp, parameterId) |>
@@ -1009,12 +1277,16 @@ dmi_df <- dmi_df |>
   ungroup()
 ```
 
+
+
 select() vælger kun de kolonner, der skal bruges videre i tabellen.
 value = den målte værdi = temperatur eller vindstyrke.
 pivot_wider() omdanner data fra vertikalt format til horisontalt format.
 id_cols angiver hvilke kolonner der skal være unikke rækker = kamp + dato.
 names_from bestemmer hvilke værdier der bliver til nye kolonnenavne = temp/vind.          
 values_from siger hvor måleværdierne skal hentes fra.
+
+
 ```{r}
 dmi_df <- dmi_df |>
 
@@ -1024,7 +1296,11 @@ dmi_df <- dmi_df |>
               values_from = value)
 ```
 
+
+
 Funktion der henter den samlede nedbør 7 timer før en kamp.
+
+
 ```{r}
 #| message: false
 #| warning: false
@@ -1065,25 +1341,41 @@ nedbør_7t <- function(dt) {
 }
 ```
 
+
+
 Beregn nedbør for alle kampdatoer ved at køre funktionen på hver dato.
+
+
 ```{r}
 #| message: false
 nedbør7t <- sapply(kamp_datoer, nedbør_7t)
 
 ```
 
+
+
 Tilføj nedbørsværdien til dmi_df ved at matche på kampnummer.
+
+
 ```{r}
 dmi_df$nedbør_seneste_7_timer  <- nedbør7t[dmi_df$kamp]
 ```
 
+
+
 Sorter tabellen, så de nyeste kampe kommer øverst = faldende rækkefølge.
+
+
 ```{r}
 dmi_df <- dmi_df |>
   arrange(desc(kamp_dato))
 ```
 
+
+
 Join med de andre to variabler. 
+
+
 ```{r}
 dmi_df <- dmi_df |>
   left_join(
@@ -1093,26 +1385,42 @@ dmi_df <- dmi_df |>
     by = "kamp")
 ```
 
+
+
 Her gemmes DMI dataerne, som en RDS-fil
+
+
 ```{r}
 saveRDS(dmi_df, "VFFdata/dmi.rds")
 
 ```
 
+
+
 ### Data fra nager.at (helligdage og feriedage)
 Her defineres URL og parameteren. Her hentes dataen fra [@helligdageweb]
+
+
 ```{r}
 BASE_URL <- "https://date.nager.at/api/v3/PublicHolidays/"
 LAND <- "/DK" # Landekode for Danmark
 ```
 
+
+
 Her defineres årsintervallet for dataindsamlingen (Matcher kamp-data perioden)
+
+
 ```{r}
 aar_super <- 2003:2026  
 ```
 
+
+
 Her oprettes en tom tibble under "helligdage" objektet.
 Variablene konveteres til de rigtige formater (navn = "chr" og dato = "date")
+
+
 ```{r}
 helligdage <- tibble(
   navn = character(), 
@@ -1120,8 +1428,12 @@ helligdage <- tibble(
 )
 ```
 
+
+
 Loop gennem hvert år og hent hellige dage fra date.nager
 Url laves, så den kører de specifikke år igennem
+
+
 ```{r}
 for (aar in aar_super) {
   url <- paste0(BASE_URL, aar, LAND)
@@ -1141,12 +1453,20 @@ for (aar in aar_super) {
 }
 ```
 
+
+
 Load af vff hjemmekamp-data RDS-fil
+
+
 ```{r}
 VFF_Hjemmekampe <- read_rds("VFFdata/superstatsvff.rds")
 ```
 
+
+
 Vi konverterer tidsstempel til date-format for at muliggøre join mellem de to tabeller
+
+
 ```{r}
 VFF_Hjemmekampe1 <- VFF_Hjemmekampe |> 
   mutate(
@@ -1154,7 +1474,11 @@ VFF_Hjemmekampe1 <- VFF_Hjemmekampe |>
   )
 ```
 
+
+
 Left join for at tilføje helligdagsinformation
+
+
 ```{r}
 VFF_Komplet <- VFF_Hjemmekampe1 |> 
   left_join(
@@ -1169,20 +1493,32 @@ VFF_Komplet <- VFF_Hjemmekampe1 |>
   dplyr::select(-navn)
 ```
 
+
+
 Opgør antal kampe på helligdage vs. almindelige dage. Her skal resultatet være 15
+
+
 ```{r}
 VFF_Komplet |> 
   count(Er_helligdag)
 ```
 
+
+
 Fjern hjælpekolonne og filtrér data fra sæson 2003/2004 og fremefter
+
+
 ```{r}
 VFF_Komplet <- VFF_Komplet |> 
   dplyr::select(-Dato_join) |>
   filter(as.numeric(str_extract(sæson, "^\\d{4}")) >= 2003)
 ```
 
+
+
 Tilføjelse af feriedage
+
+
 ```{r}
 VFF_Komplet1 <- VFF_Komplet |>
   mutate(
@@ -1218,10 +1554,16 @@ VFF_Komplet1 <- VFF_Komplet |>
 
 ```
 
+
+
 Her gemmes den endelige fil i RDS-formatet
+
+
 ```{r}
 saveRDS(VFF_Komplet1, file = "VFFdata/VFF_Komplet.rds")
 ```
+
+
 ### Transfer data 
 Transferdata har været meget svære at få fingrene i, da de fleste hjemmesider med data på området er utilgængelige for os.
 Vi har derfor fundet et open-source-projekt, skabt af en eller flere privatpersoner, som gør det lettere at hente fodbolddata i R.
@@ -1233,167 +1575,233 @@ Argumentet force = TRUE betyder, at pakken geninstalleres, selv hvis den allered
 Hvis R spørger om opdatering af afhængige pakker, vælges 3 for "None", så eksisterende pakker ikke opdateres, da det ikke er nødvendigt.
 Her er koden der kan køres for at installere pakken: devtools::install_github("JaseZiv/worldfootballR", force = TRUE). 
 
-Indlæser den færdigbehandlede transfer-RDS-fil.
-
-```{r}
-readRDS("VFFdata/TransfermarktData")
-```
-
 Indlæsning af nødvendige pakker.
+
+
 ```{r}
 pacman::p_load(worldfootballR, tidyverse, janitor)
 ```
 
+
+
 Mappen VFFdata til opbevaring af data. Hvis den ikke eksistere, så bliver den oprettet.
+
+
 ```{r}
 if (!dir.exists("VFFdata")) dir.create("VFFdata")
 ```
 
+
+
 Indlæser datasæt med Viborgs hjemmekampe i Superligaen, som blandt andet indeholder 
 informationer om hvilke sæsoner de har været i Superligaen, som skal bruges til at hente transferdata fra de korrekte år.
+
+
 ```{r}
-# vff_hjemmekampe <- readRDS("VFFdata/superstatsvff.rds")
-# sæsoner <- vff_hjemmekampe |>
-#   distinct(sæson) |>          # distinct(sæson) sikrer, at hver sæson kun optræder en gang.
-#   pull(sæson)                 # pull(sæson) konverterer kolonnen til en vektor.
+vff_hjemmekampe <- readRDS("VFFdata/superstatsvff.rds")
+sæsoner <- vff_hjemmekampe |>
+  distinct(sæson) |>          # distinct(sæson) sikrer, at hver sæson kun optræder en gang.
+  pull(sæson)                 # pull(sæson) konverterer kolonnen til en vektor.
 ```
+
+
 
 Når der hentes data fra Transfermarkt, identificeres sæsoner ved den pågældende sæsons startår.
 substr(1, 4) udtrækker de første fire tegn i sæson strengen, f.eks. 2002 fra 2002/2003 osv.
 as.integer() konverterer værdien fra tekst til en numerisk værdi for årstallet.
+
+
 ```{r}
-# år <- sæsoner |>
-#   substr(1, 4) |>
-#   as.integer()
+år <- sæsoner |>
+  substr(1, 4) |>
+  as.integer()
 ```
+
+
 
 Fjerner år før 2002, da det er fra dette år og frem vi ser på VFF's kampe.
 Ved kun at vælge år, som er større eller lig med 2002. 
+
+
 ```{r}
-# år <- år[år >= 2002]
+år <- år[år >= 2002]
 ```
+
+
 
 Opretter en tom liste. Listen udvides løbende i loopet, hvor hvert element
 bliver en dataframe med transferdata for hver sæson.
+
+
 ```{r}
-# list_of_transfers <- list()
+list_of_transfers <- list()
 ```
+
+
 
 Gennemløber alle startår og henter transferdata fra Transfermarkt.
 seq_along(år) opretter en sekvens fra 1 til længden af vektoren år.
 For loopet kører derfor en gang for hvert år i vektoren år.
+
+
 ```{r}
 #| message: false
 
-# for (i in seq_along(år)) {
-#   # Henter et startår ad gangen fra vektoren år.
-#   y <- år[i]
-#   #> Opbygger URL til Viborg FF's Transfermarkt-side for den givne sæson.
-#   #> paste0 sammensætter året og URL'en uden mellemrum til en samlet streng.
-#   url <- paste0("https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/", y)
-#   #> Henter alle transfers (sommer + vinter) for den pågældende sæson.
-#   #> og gemmer resultatet i listen, som f.eks. Viborg_2002.
-#   #> tm_team_transfers() henter alle spillertransfers for VFF.
-#   list_of_transfers[[paste0("Viborg_", y)]] <- tm_team_transfers(
-#     team_url = url,                 # team_url angiver URL’en til holdets Transfermarkt side.
-#     transfer_window = "all")        # transfer_window = "all" betyder, at både sommer og vintertransfers hentes.
-#   # Udskriver status i konsollen, så kan man se når data er hentet..
-#   message("Henter data fra året :", y, "\n")
-# }
+for (i in seq_along(år)) {
+  # Henter et startår ad gangen fra vektoren år.
+  y <- år[i]
+  #> Opbygger URL til Viborg FF's Transfermarkt-side for den givne sæson.
+  #> paste0 sammensætter året og URL'en uden mellemrum til en samlet streng.
+  url <- paste0(
+    "https://www.transfermarkt.com/viborg-ff/startseite/verein/1063/saison_id/", y)
+  #> Henter alle transfers (sommer + vinter) for den pågældende sæson.
+  #> og gemmer resultatet i listen, som f.eks. Viborg_2002.
+  #> tm_team_transfers() henter alle spillertransfers for VFF.
+  #> tryCatch() gør, at hvis et år fejler (f.eks. pga. connection/timeout/blokering),
+  #> så stopper Quarto-renderen ikke – i stedet gemmes NULL for det år.
+  list_of_transfers[[paste0("Viborg_", y)]] <- tryCatch(
+    tm_team_transfers(team_url = url, transfer_window = "all"),
+    error = function(e) NULL)
+  #> Udskriver status i konsollen, så kan man se når data er hentet.
+  #> message() er slået fra i PDF via chunk option: #| message: false
+  message("Henter data fra året: ", y)
+  # Lille pause for at mindske risiko for blokering/throttling hos Transfermarkt.
+  Sys.sleep(3)
+}
 ```
+
+
 
 Kombinerer alle lister til en samlet dataframe.
 bind_rows() binder alle tabellerne sammen under hinanden og laver et stort datasæt i en tibble.
+
+
 ```{r}
-# total_transfers <- bind_rows(list_of_transfers)
+total_transfers <- bind_rows(list_of_transfers)
 ```
+
+
 
 Fjern kolonner der ikke skal bruges.
 Med select og - foran de kolonner der ikke skal bruges, så de fravælges.
 dplyr:: er benytet da nogen får fejl ved select uden  dplyr:: foran, da andre pakker i R har en select funktion. 
+
+
 ```{r}
-# total_transfers <- total_transfers |>
-#   dplyr::select(-team_name, -league, -country, -player_url, -player_position,
-#                 -player_age, -player_nationality, -club_2, -league_2,
-#                 -country_2, -in_squad, -appearances, -goals,
-#                 -minutes_played, -transfer_notes)
+total_transfers <- total_transfers |>
+  dplyr::select(-team_name, -league, -country, -player_url, -player_position,
+                -player_age, -player_nationality, -club_2, -league_2,
+                -country_2, -in_squad, -appearances, -goals,
+                -minutes_played, -transfer_notes)
 ```
+
+
 
 Gør kolonnenavne konsistente og nemme at arbejde med i R med janitor pakken.
 clean_names() omdanner f.eks. Transfer Fee til transfer_fee.
+
+
 ```{r}
-# total_transfers_clean <- total_transfers |>
-#   clean_names()                                # Renser kolonnenavnene med clean_names() fra janitor.
+total_transfers_clean <- total_transfers |>
+  clean_names()                                # Renser kolonnenavnene med clean_names() fra janitor.
 ```
+
+
 
 Sæson står lige nu som et enkelt årstal. Laves om til korrekt sæsonformat f.eks. fra 2025 til 2025/2026.
 Opretter en ny sæson kolonne med den nuværende ved hjælp af mutate, som bruger den oprindelige kolonne til at lave en ny.
+
+
 ```{r}
-# total_transfers_clean <- total_transfers_clean |>
-#   #> Opretter sæsonformatet YYYY/YYYY+1 ud fra sæsonens startår.
-#   #> Sammensættes med paste0 med / imellem start og slut år. + 1 giver korrekt slut år i sæson strengen.
-#   #> as.numeric, som numerisk værdi. 
-#   mutate(season_format = paste0( season, "/", as.numeric( season) + 1))  
+total_transfers_clean <- total_transfers_clean |>
+  #> Opretter sæsonformatet YYYY/YYYY+1 ud fra sæsonens startår.
+  #> Sammensættes med paste0 med / imellem start og slut år. + 1 giver korrekt slut år i sæson strengen.
+  #> as.numeric, som numerisk værdi. 
+  mutate(season_format = paste0( season, "/", as.numeric( season) + 1))  
 ```
+
+
 
 Fjerner den oprindelige sæson kolonne med kun et enkelt årstal.
 Igen bruges select( med - foran den kolonne, som defor fravælges).
+
+
 ```{r}
-# total_transfers_clean <- total_transfers_clean |> 
-#   dplyr::select(- season)
+total_transfers_clean <- total_transfers_clean |> 
+  dplyr::select(- season)
 ```
+
+
 
 Fjerner alle transfers der er registreret som lån.
 Ved at filtrere på kolonnen is_loan
 og kun beholde rækker hvor is_loan == FALSE.
+
+
 ```{r}
-# transfers <- total_transfers_clean |> 
-#   filter(is_loan == FALSE)
+transfers <- total_transfers_clean |> 
+  filter(is_loan == FALSE)
 ```
+
+
 
 Fjerner observationer uden registreret transfersum ved at filtrere alle rækker fra hvor transfer_fee er NA.
 !is.na filtrerer rækker fra med manglende transfersum og beholder kun observationer med en transfer_fee.
+
+
 ```{r}
-# transfers <- transfers |> 
-#   filter(!is.na(transfer_fee))
+transfers <- transfers |> 
+  filter(!is.na(transfer_fee))
 ```
+
+
 
 Beregner samlet transferøkonomi pr. sæson samt antallet af transfers.
+
+
 ```{r}
-# total_all <- transfers |>
-#   # Grupperer data på sæson, så beregningerne foretages separat for hver sæson.
-#   group_by(season_format) |>
-#   # Opsummerer transferdata for hver sæson.
-#   # Tager mange rækker pr. sæson og samler dem til en række pr. sæson.
-#   summarise(
-#     #> Beregner samlede transferindtægter pr. sæson.
-#     #> Udvælger kun transfers hvor transfer_type er "Departures" som er spiller afgange. 
-#     #> og summerer transfer_fee for dem. 
-#     total_income = sum(transfer_fee[transfer_type == "Departures"]),
-#     #> Beregner samlede transferudgifter for sæsonen (spillerkøb).
-#     #> Samme koncept som før. Bare med spiller tilgange (Arrivals)
-#     total_expense = sum(transfer_fee[transfer_type == "Arrivals"]),
-#     # Nettobalance beregnes som indtægter minus udgifter.
-#     net_balance = total_income - total_expense,
-#     #> Antal transfers i sæsonen (både køb og salg).
-#     #> Tæller antallet af observationer for hver sæson.
-#     #> n() svarer til det samlede antal transfers i sæsonen.
-#     antal_transfers = n()) |> 
-#   #> Fjerner gruppering efter summarise.
-#   #> Så datasættet igen behandles som et almindeligt ugrupperet datasæt.
-#   ungroup() |> 
-#   #> Sorterer sæsonerne i faldende rækkefølge (nyeste først).
-#   #> arrange(desc) sørger for at arrangere i faldende rækkefølge.
-#   arrange(desc(season_format))
+total_all <- transfers |>
+  # Grupperer data på sæson, så beregningerne foretages separat for hver sæson.
+  group_by(season_format) |>
+  # Opsummerer transferdata for hver sæson.
+  # Tager mange rækker pr. sæson og samler dem til en række pr. sæson.
+  summarise(
+    #> Beregner samlede transferindtægter pr. sæson.
+    #> Udvælger kun transfers hvor transfer_type er "Departures" som er spiller afgange. 
+    #> og summerer transfer_fee for dem. 
+    total_income = sum(transfer_fee[transfer_type == "Departures"]),
+    #> Beregner samlede transferudgifter for sæsonen (spillerkøb).
+    #> Samme koncept som før. Bare med spiller tilgange (Arrivals)
+    total_expense = sum(transfer_fee[transfer_type == "Arrivals"]),
+    # Nettobalance beregnes som indtægter minus udgifter.
+    net_balance = total_income - total_expense,
+    #> Antal transfers i sæsonen (både køb og salg).
+    #> Tæller antallet af observationer for hver sæson.
+    #> n() svarer til det samlede antal transfers i sæsonen.
+    antal_transfers = n()) |> 
+  #> Fjerner gruppering efter summarise.
+  #> Så datasættet igen behandles som et almindeligt ugrupperet datasæt.
+  ungroup() |> 
+  #> Sorterer sæsonerne i faldende rækkefølge (nyeste først).
+  #> arrange(desc) sørger for at arrangere i faldende rækkefølge.
+  arrange(desc(season_format))
 ```
 
+
+
 Gemmer transfer data for VFF, som en RDS-fil. 
+
+
 ```{r}
 saveRDS(total_all, "VFFdata/TransfermarktData.rds")
 ```
 
+
+
 ### Bjarnes data
 Indlæsning af uleverede RDS-filer fra Bjarne. 
+
+
 ```{r}
 data_vffkort01_rds <- readRDS("VFFdata/vffkort01.rds")
 ```
@@ -1402,57 +1810,93 @@ data_vffkort01_rds <- readRDS("VFFdata/vffkort01.rds")
 data_fcidk_rds <- readRDS("VFFdata/fcidk.rds")
 ```
 
+
+
 ### RSQLight
 Vi starter med at indlæse de nødvendige pakker. 
 Tidyverse bruges til databehandling.
 RSQlite bruges til at arbejde med databaser.
 
+
+
 ```{r}
 pacman::p_load("tidyverse", "RSQLite")
 ```
 
+
+
 Oprettelse af SQLite database
+
+
 ```{r}
 if (!dir.exists("VFFdata")) dir.create("VFFdata")
 ```
 
+
+
 Vi opretter forbindelse til SQLite databasen. 
+
+
 ```{r}
 connection_VFFdata <- dbConnect(SQLite(), "VFFdata/fodbolddata.sqlite")
 
 ```
 
+
+
 Vi indlæser VFF kampdata og fjerner helligdag-navn. 
+
+
 ```{r}
 VFF_Komplet <- readRDS("VFFdata/VFF_Komplet.rds") |> 
   select(-Helligdag_navn)
 ```
 
+
+
 Vi indlæser DMI vejrdata og fjerner rækker uden kampdatoer. 
+
+
 ```{r}
 DMI_data <- readRDS("VFFdata/dmi.rds") |> 
   filter(!is.na(kamp_dato))
 ```
 
+
+
 Indløser Transfermarkt_data og fjerner rækker uden sæson informationer
+
+
 ```{r}
 Transfermarkt_data <- readRDS("VFFdata/TransfermarktData.rds") |> 
   filter(!is.na(season_format))
 ```
 
+
+
 Indlæser informationer om tilskuerne vffkort 
+
+
 ```{r}
 data_vffkort01_rds <- readRDS("VFFdata/vffkort01.rds") 
 ```
 
+
+
 Indlæser informationer om modstanderne med fcidk. 
+
+
 ```{r}
 data_fcidk_rds <- readRDS("VFFdata/fcidk.rds")
 ```
 
+
+
 Vi smider nu data i SQLite
 dbWriteTable = Vi gemmer en dataframe permanent i en database som en tabel. 
 overwrite = Vi sikre at den gamle data overskrives hver gang vi kører koden.
+
+
 ```{r}
 dbWriteTable(connection_VFFdata, "vff", data_vffkort01_rds, overwrite = TRUE)
 dbWriteTable(connection_VFFdata, "fci", data_fcidk_rds, overwrite = TRUE)
@@ -1461,23 +1905,39 @@ dbWriteTable(connection_VFFdata, "VFF_Komplet", VFF_Komplet, overwrite = TRUE)
 dbWriteTable(connection_VFFdata, "Transfermarkt_data", Transfermarkt_data, overwrite = TRUE)
 ```
 
+
+
 Vi ser alle tabeller der findes i databasen. 
+
+
 ```{r}
 dbListTables(connection_VFFdata)
 ```
 
+
+
 Vi lukker databasen. 
+
+
 ```{r}
 dbDisconnect(connection_VFFdata)
 ```
 
+
+
 vi genåbner forbindelsen til databasen. 
+
+
 ```{r}
 connection_VFFdata <- dbConnect(SQLite(), "VFFdata/fodbolddata.sqlite")
 ```
 
+
+
 dbGetQuery henter data fra databasen og laver dem om til en dataframe. 
 Vi henter alle kolonner med SELECT
+
+
 ```{r}
 SQL_DMI <- dbGetQuery(connection_VFFdata, "SELECT * FROM DMI_data")
 SQL_VFF_Komplet <- dbGetQuery(connection_VFFdata, "SELECT * FROM VFF_Komplet")
@@ -1486,17 +1946,29 @@ SQL_vff <- dbGetQuery(connection_VFFdata, "SELECT * FROM vff")
 SQL_fci <- dbGetQuery(connection_VFFdata, "SELECT * FROM fci")
 ```
 
+
+
 Vi lukker databasen. 
+
+
 ```{r}
 dbDisconnect(connection_VFFdata)
 ```
 
+
+
 Vi åbner forbindelsen.
+
+
 ```{r}
 connection_VFFdata <- dbConnect(SQLite(), "VFFdata/fodbolddata.sqlite")
 ```
 
+
+
 Vi samler alle kampdata og får en komplet tabel over alle kampe. 
+
+
 ```{r}
 sql_samlet <- dbGetQuery(connection_VFFdata, "
 SELECT
@@ -1576,30 +2048,50 @@ WHERE V.sæson BETWEEN '2003/2004' AND '2025/2026'
 ")
 ```
 
+
+
 Vi lukker databasen.
+
+
 ```{r}
 dbDisconnect(connection_VFFdata)
 ```
 
+
+
 Vi gemmer filen, som en RDS
+
+
 ```{r}
 saveRDS(sql_samlet, "VFFdata/VFF_samlet_variabler.rds") 
 ```
 
+
+
 ### Download joinet datasæt
 Indlæser nødvendige pakker. 
+
+
 ```{r}
 pacman::p_load("tidyverse", "forcats", "ggplot2", "glmnet", "leaps", "caret", "purrr", "car", "tibble")
 ```
 
+
+
 Indlæser joinet datasæt. 
+
+
 ```{r}
 VFF_samlet_variabler <- readRDS("VFFdata/VFF_samlet_variabler.rds")  
 ```
 
+
+
 ### Preprocess 
 Vi konverter relevante variabler til faktorer. Vi bruger mutate til at bygge videre på de samlet variabler, og definer dem 
 "as factor".Dette er vigtigt i forbindelse med lineær regression, hvor faktorvariable behandles som kategoriske og derfor omsættes til dummyvariable i matricen.
+
+
 ```{r}
 VFF_samlet_variabler <- VFF_samlet_variabler |>
   mutate(
@@ -1613,7 +2105,11 @@ VFF_samlet_variabler <- VFF_samlet_variabler |>
   )
 ```
 
+
+
 Vi samler udehold der kun optræder få gange i en fælles kategori. Vi tæller hvor mange gange et hold opretter, og laver en ny kolonne der hedder "n_udehold" som tæller antallet af gange holdet gentages i datasættet. Vi bruger mutate og if_else til at derfiner at et "stor hold" er et hold hvor observation gentages mere end 2 gange. Dvs hold der gentages 2 eller færre gange defineres efterfølgende som faktoren "små hold". Til sidst bruger vi select til at fjerne kolonnen "n_udehold". 
+
+
 ```{r}
 VFF_samlet_variabler <- VFF_samlet_variabler |>
   add_count(udehold, name = "n_udehold") |>
@@ -1624,12 +2120,16 @@ VFF_samlet_variabler <- VFF_samlet_variabler |>
   select(-n_udehold)
 ```
 
+
+
 ## Modellering
 Vi bruger set.seed til at definer, at vi er gruppe 1. nrow tæller hvor rækker
 (dvs. kampe) der er i vores datasæt. vi gemmer det i et objekt vi kalder "n".
 Vi opdeler efterfølgende dataene helt tilfældigt 70/30 procent. Vi definer
 vores træningsindex som 70%, og vores test data som minus træningsindex, dvs
 100 procent minus 70 procent, som gir 30 procent. 
+
+
 ```{r}
 set.seed(1)
 n <- nrow(VFF_samlet_variabler)
@@ -1638,17 +2138,25 @@ train_data <- VFF_samlet_variabler[train_index, ]
 test_data  <- VFF_samlet_variabler[-train_index, ]
 ```
 
+
+
 Vi sikrer at test_data kun har niveauer, som modellen kender. Vi bruger mutate til at bygge videre på test_dataene, og sørger for, udehold
 gendannes som faktor med samme levels som i træningsdataene. Levels(train_data$udehold henter alle de niveauer, som udehold har i trænings-
 -datasættet.
+
+
 ```{r}
 test_data <- test_data |> 
   mutate(
     udehold = factor(udehold, levels = levels(train_data$udehold)))
 ```
+
+
 ### Stor model - linenær regression med alle mulige variabler
 
 Vi laver en stor lineær regressionsmodel for at afdække potentielle sammenhænge i vores mange forklarende variabler. 
+
+
 ```{r}
 #| label: lst-stor-model
 stor_lm_model <- lm(
@@ -1663,25 +2171,39 @@ stor_lm_model <- lm(
 )
 ```
 
+
+
 Test for multikollinearitet - VIF (Variance inflation factor) via car-pakken
 VIF-testen fejler, fordi vi har perfekt multikollinearitet
+
+
 ```{r}
 # vif(stor_lm_model)
 # Udkommenteret da Quatro ikke kan håndtere multikollinearitet.
 ```
 
+
+
 Vi finder de perfekte lineære afhængigheder
+
+
 ```{r}
 alias(stor_lm_model)
 
 ```
 
+
+
 Designmatrix-rank (bekræftelse af multikollinearitet problemet
+
+
 ```{r}
 kampdag_X <- model.matrix(stor_lm_model)
 qr(kampdag_X)$rank
 ncol(kampdag_X)
 ```
+
+
 Vi har 57 kolonner, 45 kolonner er ikke lineært afhængige af andre kolonner. 
 Det betyder, at 12 kolonner er lineræt afhængige af andre kolonner.
 
@@ -1704,6 +2226,8 @@ Dette giver perfekt multikollinearitet. Det vi gør nu, er at vi beholder en
 af disse variabler, så vi ikke beskriver det samme igen og igen.
 
 ### Stor model for 3 dage før - linenær regression med alle mulige variabler
+
+
 ```{r}
 stor_lm_model_ny <- lm(
   tilskuere ~ 
@@ -1722,6 +2246,8 @@ stor_lm_model_ny <- lm(
 )
 ```
 
+
+
 Vi tester igen for multikollinearitet - VIF (Variance inflation factor) via car-pakken
 Model.matrix udtrækker desginmatricen fra modellen 
 qr() laver en QR-dekomposition af designmatricen
@@ -1730,6 +2256,8 @@ modelmatricen)
 ncol tæller antallet af regressorer i modellen, dvs det antal af kolonner, som 
 ikke er lineært afhængige af hinanden. 
 alias() identificer hvilke variabler der er 100% lineære afhængige af hinanden. 
+
+
 ```{r}
 X <- model.matrix(stor_lm_model_ny)
 qr(X)$rank
@@ -1737,7 +2265,11 @@ ncol(X)
 alias(stor_lm_model_ny)
 ```
 
+
+
 Det kan ses, at net_balance skyldes fejlen. Den fjerner vi nu
+
+
 ```{r}
 stor_lm_model_ny <- lm(
   tilskuere ~ 
@@ -1756,6 +2288,8 @@ stor_lm_model_ny <- lm(
 )
 ```
 
+
+
 Vi tester igen for multikollinearitet - VIF (Variance inflation factor) via car-pakken
 Model.matrix udtrækker desginmatricen fra modellen 
 qr() laver en QR-dekomposition af designmatricen
@@ -1764,26 +2298,40 @@ modelmatricen)
 ncol tæller antallet af regressorer i modellen, dvs det antal af kolonner, som 
 ikke er lineært afhængige af hinanden. 
 alias() identificer hvilke variabler der er 100% lineære afhængige af hinanden. 
+
+
 ```{r}
 X <- model.matrix(stor_lm_model_ny)
 qr(X)$rank
 ncol(X)
 ```
 
+
+
 Nu er der 42/42, så ingen lineære afhængighed.
+
+
 ```{r}
 alias(stor_lm_model_ny)
 ```
 
+
+
 Vi tester nu for VIF igen. 
+
+
 ```{r}
 vif(stor_lm_model_ny)
 ```
+
+
 
 Det kan ses, at ingen af variablerne har et kritisk VIF-niveau (over 5). 
 De fleste ligger på et moderat niveau mellem 1 og 5. Vi skal dog være OBS på,
 at mål_sæson_lag_udehold og runde nærmere sig et højt niveau. Vi har allerede
 en tårnhøj R^2, så vi prøver lige at fjerne mål_sæson_lag_udehold. 
+
+
 ```{r}
 stor_lm_model_3_dage <- lm(
   tilskuere ~ 
@@ -1801,14 +2349,22 @@ stor_lm_model_3_dage <- lm(
 )
 ```
 
+
+
 Vi tester nu for VIF igen. 
+
+
 ```{r}
 vif(stor_lm_model_3_dage)
 ```
 
+
+
 ### Stor model for 7 dage før - linenær regression med alle mulige variabler
 
 Model 7 dage før
+
+
 ```{r}
 stor_lm_model_7_dage <- lm(
   tilskuere ~ 
@@ -1826,8 +2382,12 @@ stor_lm_model_7_dage <- lm(
 )
 ```
 
+
+
 ### Stor model for 10 dage før - linenær regression med alle mulige variabler
 Model 10 dage før
+
+
 ```{r}
 stor_lm_model_10_dage <- lm(
   tilskuere ~ 
@@ -1845,7 +2405,11 @@ stor_lm_model_10_dage <- lm(
 )
 ```
 
+
+
 ### Stor model for flere måneder før - linenær regression med alle mulige variabler
+
+
 
 ```{r}
 stor_lm_model_flere_måneder <- lm(
@@ -1855,17 +2419,25 @@ stor_lm_model_flere_måneder <- lm(
 )
 ```
 
+
+
 Her beregner vi VIF på modellen der kan forudsige flere måneder i forvejen
+
+
 ```{r}
 #| label: lst-vif-stor-model
 vif(stor_lm_model_flere_måneder)
 ```
+
+
 
 ### Samlet for lineære modeller
 
 Predict på testdata
 Vi bruger predict til at tage koefficientere fra den estimerede model, (som 
 vi har defineret foroven). 
+
+
 ```{r}
 tilskuere_hat3 <- predict(stor_lm_model_3_dage, newdata = test_data)
 tilskuere_hat7 <- predict(stor_lm_model_7_dage, newdata = test_data)
@@ -1873,12 +2445,16 @@ tilskuere_hat10 <- predict(stor_lm_model_10_dage, newdata = test_data)
 tilskuere_hat_flere_måneder <- predict(stor_lm_model_flere_måneder, newdata = test_data)
 ```
 
+
+
 Funktion til beregning af RMSE og MSE
 Vi opretter en funktion, som vi kalder "calc_metrics". 
 obs er de observerede værdier (dvs faktiske tilskuertal)
 pred er forudsagtes værdier fra vores model
 Efter det skriver vi formlerne til at beregne hhv. MSE, RMSE og R^2. 
 Til sidst returnerer vi en liste med alle tre metrics.
+
+
 ```{r}
 calc_metrics <- function(obs, pred) {
   mse <- mean((obs - pred)^2)
@@ -1890,7 +2466,11 @@ calc_metrics <- function(obs, pred) {
 }
 ```
 
+
+
 Vi definer vores modeller, og hvad der skal beregnes
+
+
 ```{r}
 metrics_3_dage    <- calc_metrics(test_data$tilskuere, tilskuere_hat3)
 metrics_7_dage    <- calc_metrics(test_data$tilskuere, tilskuere_hat7)
@@ -1898,7 +2478,11 @@ metrics_10_dage   <- calc_metrics(test_data$tilskuere, tilskuere_hat10)
 metrics_flere_måneder   <- calc_metrics(test_data$tilskuere, tilskuere_hat_flere_måneder)
 ```
 
+
+
 Vi ser resultateterne for vores lineære regressionsmodeller
+
+
 ```{r}
 metrics_3_dage
 metrics_7_dage
@@ -1906,9 +2490,13 @@ metrics_10_dage
 metrics_flere_måneder
 ```
 
+
+
 Vi samler resultaterne i en tibble
 Vi smider de i en tibble, og bruger c (combine) til kombiner de forskellige 
 modeller for de forskellige perioder, og nøgletallene for hver model. 
+
+
 ```{r}
 metrics_samlet <- tibble(
   Model = c("3 dage før", "7 dage før", "10 dage før", "flere måneder"),
@@ -1918,6 +2506,8 @@ metrics_samlet <- tibble(
 )
 ```
 
+
+
 Vi laver et ggplot til at se residualerne, dvs hvor meget prikkerne afviger 
 fra linjen og hvor præcis modellen er. 
 
@@ -1925,6 +2515,8 @@ Vi starter med at samle dataene til plottet.
 Vi bruger bind rows til at sættrer rækkerne fra de forskellige tabeller sammen.
 Vi har vores model, vores observeret værdi og vores forudsagte (predicted)
 Værdi. 
+
+
 ```{r}
 plot_data <- bind_rows(
   tibble(
@@ -1950,6 +2542,8 @@ plot_data <- bind_rows(
 )
 ```
 
+
+
 Vi laver vores ggplot ud fra vores plot_data. 
 x er = observed og y = predicted 
 geom_point() tegner et punkt for hver observation.
@@ -1961,6 +2555,8 @@ Vi bruger facet_wrap til at lave separate plots for hver model
 scales = "free" betydet, at hver plto kan have sin egen skal på x- og y-aksen,
 så alle punkterne passer. 
 Vi bruger labs til at lave overskrifterne. 
+
+
 ```{r}
 ggplot(plot_data, aes(x = Observed, y = Predicted)) +
   geom_point(alpha = 0.4) +
@@ -1974,6 +2570,8 @@ ggplot(plot_data, aes(x = Observed, y = Predicted)) +
   theme_minimal()
 ```
 
+
+
 Jo tættere på kampdagen vi er, jo mindre bliver residualerne. Dette betyder, at modellen bliver mere og mere præcis, jo tættere på kampdagen vi kommer. Årsagen  til denne udvikling, er at vi har flere variabler jo tættere på kampdagen vi er. Dette betyder, at vores model kan forklare mere af variationen, hvilket bekræftes ved at R^2 stiger jo tættere på kampdagen vi kommer. 
 
 ### Lasso / Ridge regression (shrinkage-metoder)
@@ -1986,9 +2584,13 @@ Vi bruger det til regularisering i shrinkage metoder (Ridge og Lasso).
 Jo større lamda-værdien er, jo større er straffen. En lille lambda-værdi, er 
 næsten det samme som almindelig lineær regression. Vi vurder 100 lambda-værdier,
 til at være tilstrækkeligt. 
+
+
 ```{r}
 lambda_grid <- 10^seq(5, -3, length = 100)
 ```
+
+
 
 Funktion til metrics
 Vi opretter en funktion, som vi kalder "calc_metrics". 
@@ -1996,6 +2598,8 @@ Obs er de observerede værdier (dvs faktiske tilskuertal)
 pred er forudsagtes værdier fra vores model
 Efter det skriver vi formlerne til at beregne hhv. MSE, RMSE og R^2. 
 Til sidst returnerer vi en liste med alle tre metrics.
+
+
 ```{r}
 calc_metrics <- function(obs, pred) {
   mse <- mean((obs - pred)^2)
@@ -2007,9 +2611,13 @@ calc_metrics <- function(obs, pred) {
 }
 ```
 
+
+
 Funktion til at lave metrics tibble
 Vi pakker vores resultater i en tibble med vores værdier, og hvilke modeltype
 det er. Formålet her, at at gære resultaterne lettere at sammenligne og samle. 
+
+
 ```{r}
 make_metrics_tibble <- function(obs, pred, model_name, lambda, periode) {
   metrics <- calc_metrics(obs, pred)
@@ -2024,9 +2632,13 @@ make_metrics_tibble <- function(obs, pred, model_name, lambda, periode) {
 }
 ```
 
+
+
 Base features
 Vi definer de fælles forklarende variabler for de fleste modeller.
 Vi bruger combine (c) til at sammensætte de forskellige variabler.
+
+
 ```{r}
 base_features <- c(
   "temp_dry", "wind_speed", "nedbør_seneste_7_timer",
@@ -2041,12 +2653,16 @@ base_features <- c(
 )
 ```
 
+
+
 Features for hvert tidspunkt
 Vi laver fire modeller med forskellige tidshorisonter.
 Vi bruger combine (c) til at kombinerer base_features, som vi defineret 
 foroven, samt billetsalg varaibel og mål i seneste 3 hjemmekampe. 
 I "flere måneder"-modellen definerer hvilke variabler der skal med via 
 combine (c).
+
+
 ```{r}
 features_list <- list(
   "3 dage" = c(base_features, "d3_tilskuere", "mål_seneste_3_hjemme"),
@@ -2059,6 +2675,8 @@ features_list <- list(
 )
 ```
 
+
+
 Vi kører en Ridge-funktion, der vælger den bedste lambda. 
 Vi kører den for vores forskellige features for alle modeller, og den periode
 som modellerne er i. 
@@ -2068,6 +2686,8 @@ Vi træner vores Ridge-model til af alpha = 0 for alle lambda-værdier i
 lambda-grind. Vi beregner vores nøgletal (MSE, RMSE og R^2) på testdata for 
 hver lambda. Vores Ridge-regressionsmodel returnerer den lambda og de metrics,
 som giver den laveste MSE for den valgte periode. 
+
+
 ```{r}
 run_ridge_best_lambda <- function(features, periode) {
   
@@ -2100,6 +2720,8 @@ run_ridge_best_lambda <- function(features, periode) {
 }
 ```
 
+
+
 Vi kører en Lasso-funktion, der vælger den bedste lambda. 
 Vi kører den for vores forskellige features for alle modeller, og den periode
 som modellerne er i. 
@@ -2109,6 +2731,8 @@ Vi træner vores Ridge-model til af alpha = 0 for alle lambda-værdier i
 lambda-grind. Vi beregner vores nøgletal (MSE, RMSE og R^2) på testdata for 
 hver lambda. Vores Ridge-regressionsmodel returnerer den lambda og de metrics,
 som giver den laveste MSE for den valgte periode. 
+
+
 ```{r}
 run_lasso_best_lambda <- function(features, periode) {
   
@@ -2141,12 +2765,16 @@ run_lasso_best_lambda <- function(features, periode) {
 }
 ```
 
+
+
 Vi kører nu alle periodemodellerne for Ridge- og Lasso- regression, og samler
 resulterne i en tabel.
 
 Vi laver et loop over alle perioder i features_listen, og kører 
 run_ridge_best_lambda. Og vi bruger bind_rows funktioenn til at binde resultaterne
 i en tibble med den bedste lambda og de bedste metrics for hver periode. 
+
+
 ```{r}
 metrics_ridge_best <- bind_rows(
   lapply(names(features_list), function(p) {
@@ -2155,9 +2783,13 @@ metrics_ridge_best <- bind_rows(
 )
 ```
 
+
+
 Vi laver et loop over alle perioder i features_listen, og kører 
 run_lasso_best_lambda. Og vi bruger bind_rows funktioenn til at binde resultaterne
 i en tibble med den bedste lambda og de bedste metrics for hver periode.
+
+
 ```{r}
 metrics_lasso_best <- bind_rows(
   lapply(names(features_list), function(p) {
@@ -2166,10 +2798,16 @@ metrics_lasso_best <- bind_rows(
 )
 ```
 
+
+
 Vi ser resultaterne 
+
+
 ```{r}
 #view(metrics_ridge_best)
 ```
+
+
 
 ### Best subset selection
 
@@ -2180,6 +2818,8 @@ Obs er de observerede værdier (dvs faktiske tilskuertal)
 pred er forudsagtes værdier fra vores model
 Efter det skriver vi formlerne til at beregne hhv. MSE, RMSE og R^2. 
 Til sidst returnerer vi en liste med alle tre metrics.
+
+
 ```{r}
 calc_metrics <- function(obs, pred) {
   mse <- mean((obs - pred)^2)
@@ -2191,6 +2831,8 @@ calc_metrics <- function(obs, pred) {
 }
 ```
 
+
+
 Alignment-funktion
 Vi sørger for, at vores designmatrix (newx) får samme kolonner og rækkefælge som
 vores reference-matrix (refx).
@@ -2201,6 +2843,8 @@ returnerer en matrix, hvor alle kolonner fra refx er til stede, og evt
 manglende kolonner fra newx fyldes med "0". 
 Formålet med dette er at sikre, at train- og test- matricen har samme struktur,
 hvilket er nødtvendigt for at glmnet-pakken kan lave forudsigelser. 
+
+
 ```{r}
 align_matrix <- function(newx, refx) {
   out <- matrix(0, nrow = nrow(newx), ncol = ncol(refx))
@@ -2211,9 +2855,13 @@ align_matrix <- function(newx, refx) {
 }
 ```
 
+
+
 Base features
 Vi definer de fælles forklarende variabler for de fleste modeller.
 Vi bruger combine (c) til at sammensætte de forskellige variabler.
+
+
 ```{r}
 base_features <- c(
   "temp_dry", "wind_speed", "nedbør_seneste_7_timer",
@@ -2228,12 +2876,16 @@ base_features <- c(
 )
 ```
 
+
+
 Features for hvert periode
 Vi laver fire modeller med forskellige tidshorisonter.
 Vi bruger combine (c) til at kombinerer base_features, som vi defineret 
 foroven, samt billetsalg varaibel og mål i seneste 3 hjemmekampe. 
 I "flere måneder"-modellen definerer hvilke variabler der skal med via 
 combine (c).
+
+
 ```{r}
 features_list <- list(
   "3 dage" = c(base_features, "d3_tilskuere", "mål_seneste_3_hjemme"),
@@ -2246,6 +2898,8 @@ features_list <- list(
 )
 ```
 
+
+
 Best Subset funktion
 Vi finder den model ved best subset regression.
 Vi udvælger outcome og features fra train- og testdata.
@@ -2256,6 +2910,8 @@ Vi tester alle kombinationer af op til max_vars variable (exhaustive search).
 Vi beregner MSE, RMSE og R² på testdata for hver model.
 Til sidst eturnerer koden den model, der giver lavest RMSE, 
 med antal variable og performance-metrics.
+
+
 
 ```{r}
 run_best_subset <- function(features, tidspunkt, max_vars = 20, outcome_var = "tilskuere") {
@@ -2297,10 +2953,14 @@ run_best_subset <- function(features, tidspunkt, max_vars = 20, outcome_var = "t
 }
 ```
 
+
+
 Vi kører Best Subset Method for alle perioder
 Vi looper over alle tidspunkter/perioder i features_list. Vi kører 
 run_best_subset for hver periode med de tilhørende features. 
 Til sidst binder vi alle resultater sammen i en tibble via bind_rows.
+
+
 ```{r}
 results_subset <- bind_rows(
   lapply(names(features_list), function(tidspunkt) {
@@ -2309,6 +2969,8 @@ results_subset <- bind_rows(
 )
 ```
 
+
+
 ### Sammenligning af nøgletal
 
 Samling af de forskellige modeller i en tibble
@@ -2316,6 +2978,8 @@ Samling af de forskellige modeller i en tibble
 Hjælpefunktion
 Vi opretter en tibble med kolonnerne over vores værdier (MSE, RMSE og R^2) for
 alle modeller.
+
+
 ```{r}
 metrics_to_tibble <- function(metrics, model_name) {
   tibble(
@@ -2327,8 +2991,12 @@ metrics_to_tibble <- function(metrics, model_name) {
 }
 ```
 
+
+
 Lineær regression 
 Vi bruger bind_rows til at danne metrics for hver lm model til en tibble
+
+
 ```{r}
 metrics_lm <- bind_rows(
   metrics_to_tibble(metrics_3_dage, "3 dage før"),
@@ -2338,10 +3006,14 @@ metrics_lm <- bind_rows(
 )
 ```
 
+
+
 Ridge regression
 Vi bruger transmute til at lave en ny tibble med kun de valgte kolonner. 
 Vi bruger paste("Ridge -") til at tilføje teksten "Ridge" foran perioden.
 Vi beholder MSE, RMSE og R^2 som performance-metrics. 
+
+
 ```{r}
 metrics_ridge <- metrics_ridge_best |> 
   transmute(
@@ -2352,10 +3024,14 @@ metrics_ridge <- metrics_ridge_best |>
   )
 ```
 
+
+
 Lasso regression
 Vi bruger transmute til at lave en ny tibble med kun de valgte kolonner. 
 Vi bruger paste("Lasso -") til at tilføje teksten "Lasso" foran perioden.
 Vi beholder MSE, RMSE og R^2 som performance-metrics.
+
+
 ```{r}
 metrics_lasso <- metrics_lasso_best |> 
   transmute(
@@ -2366,10 +3042,14 @@ metrics_lasso <- metrics_lasso_best |>
   )
 ```
 
+
+
 Best Subset 
 Vi bruger transmute til at lave en ny tibble med kun de valgte kolonner. 
 Vi bruger paste("Best subset-") til at tilføje teksten "Best subset" 
 foran perioden. Vi beholder MSE, RMSE og R^2 som performance-metrics. 
+
+
 ```{r}
 metrics_subset <- results_subset |> 
   transmute(
@@ -2380,9 +3060,13 @@ metrics_subset <- results_subset |>
   )
 ```
 
+
+
 Vi samler alle modeller i en tibble 
 Vi bruger bind_rows til at samle alle modeller, og bruger arrange til at 
 sorter efter den bedste (laveste) MSE. 
+
+
 ```{r}
 #| label: lst-metrics 
 metrics_samlet_alle <- bind_rows(
@@ -2394,11 +3078,17 @@ metrics_samlet_alle <- bind_rows(
   arrange(MSE)
 ```
 
+
+
 Vi ser resultatet
+
+
 ```{r}
 #| label: lst-print-metrics
 print(metrics_samlet_alle)
 ```
+
+
 
 ### Cross Validation 
 
@@ -2409,11 +3099,15 @@ Vi laver en hjælpefunktion
 Funktionen beregner RMSE mellem de observerede værdier og de forudsagte
 (predicted) værdier. Vi skriver formlen ind for R^2, sætter at na.rm = TRUE, 
 så alle NA-værdier bliver fjernet.
+
+
 ```{r}
 rmse <- function(obs, pred) {
   sqrt(mean((obs - pred)^2, na.rm = TRUE))
 }
 ```
+
+
 
 Vi laver en align_matrix
 Formålet med vores funktion her, er at tilpasse en matrix (newx) til strukturen
@@ -2427,6 +3121,8 @@ common <- intersect(colnames(newx), colnames(refx)): Finder de kolonnenavne,
 som findes i begge matricer.
 out[, common] <- newx[, common]: Indsætter værdierne fra newx i de kolonner 
 i out, som de har til fælles. Kolonner, der ikke findes i newx, forbliver 0.
+
+
 ```{r}
 align_matrix <- function(newx, refx) {
   out <- matrix(0, nrow = nrow(newx), ncol = ncol(refx))
@@ -2437,9 +3133,13 @@ align_matrix <- function(newx, refx) {
 }
 ```
 
+
+
 K-fold CV funktion for LASSO (da det er vores bedste model)
 Vi laver en funktion, som evaluerer, hvor godt vores Lasso-model forudsiger
 vores y-varibel: Antallet af tilskuere. 
+
+
 ```{r}
 cv_lasso <- function(features, data, k = 5, lambda_grid) {
   
@@ -2494,13 +3194,19 @@ cv_lasso <- function(features, data, k = 5, lambda_grid) {
 }
 ```
 
+
+
 Lambda-grid
 Vi opretter et numerisk sekvens, der starter ved 5 og slutter ved -3
 Sekvensen længde indeholder 100 jævnt fordelte værdier. 
 Hver værdi i sekvsensen bruges som en eksponent med grundtal 10, dvs 10^
+
+
 ```{r}
 lambda_grid <- 10^seq(5, -3, length = 100)
 ```
+
+
 Vores lambda_grid bliver en vektor med 100 positive tal
 Værdierne går fra 100.000 (10^5) ned til 0.001 (10^-3)
 Tallene er logaritmisk fordelt, ikke lineært. 
@@ -2508,6 +3214,8 @@ Tallene er logaritmisk fordelt, ikke lineært.
 Feature-lister 
 Vi definer de fælles forklarende variabler for de fleste modeller.
 Vi bruger combine (c) til at sammensætte de forskellige variabler.
+
+
 ```{r}
 base_features <- c(
   "temp_dry", "wind_speed", "nedbør_seneste_7_timer",
@@ -2522,12 +3230,16 @@ base_features <- c(
 )
 ```
 
+
+
 Features for hvert tidspunkt
 Vi laver fire modeller med forskellige tidshorisonter.
 Vi bruger combine (c) til at kombinerer base_features, som vi defineret 
 foroven, samt billetsalg varaibel og mål i seneste 3 hjemmekampe. 
 I "flere måneder"-modellen definerer hvilke variabler der skal med via 
 combine (c).
+
+
 ```{r}
 features_list <- list(
   "3 dage før" = c(base_features, "d3_tilskuere", "mål_seneste_3_hjemme"),
@@ -2540,14 +3252,20 @@ features_list <- list(
 )
 ```
 
+
+
 Vi kører LASSO K-fold CV
 
 Vi bruger set.seed(1), fordi vi er gruppe #1
 k <- 5 betyder, at vi anvender 5-fold cross-validation
+
+
 ```{r}
 set.seed(1)
 k <- 5
 ```
+
+
 
 Vi kører LASSO-regression for hver feature periode. 
 Vi bruger map_dfr til at køre funktionen for hvert navn. Det samler alle 
@@ -2557,6 +3275,8 @@ Train_data er vores træningsdata.
 k = k: Dette er 5-fold cross-validation.
 Lambda_grid er de lambda_værdier, der testes i vores LASSO-model
 Resultatet gemmes i res(CV_MSE/RMSE).
+
+
 ```{r}
 cv_lasso_results <- map_dfr(names(features_list), function(name) {
   res <- cv_lasso(
@@ -2574,6 +3294,8 @@ cv_lasso_results <- map_dfr(names(features_list), function(name) {
   )
 })
 ```
+
+
 
 LOOCV - "leave one out cross validation" kunne her foretages, men da vi har mange faktorer med 
 mange niveauer, dette vil medføre at fjernelse af en enkelt observation, at nogle
@@ -2609,6 +3331,8 @@ Klargøring af data
 Det første vi skal gøre, er at forberede træningsdata til vores Lasso-nodel.
 Vi starter med at konverterer karakterer/numeriske værdier til faktorer.
 Hvis vi ikke gør dette, så vil modellen fejlagitg antage en numerisk orden.
+
+
 ```{r}
 train_data <- train_data |> 
   mutate(
@@ -2618,17 +3342,25 @@ train_data <- train_data |>
   )
 ```
 
+
+
 Vi tjekker levels, og at vi har alt data med, som lige er blevet konverteret 
 til faktorer.
+
+
 ```{r}
 levels(train_data$ugedag)
 levels(train_data$tidsperiode)
 levels(train_data$sæson)
 ```
 
+
+
 Feature-lister 
 Vi definer de fælles forklarende variabler for de fleste modeller.
 Vi bruger combine (c) til at sammensætte de forskellige variabler.
+
+
 ```{r}
 features_list <- list(
   "3 dage" = c(base_features, "d3_tilskuere", "mål_seneste_3_hjemme"),
@@ -2641,19 +3373,29 @@ features_list <- list(
 )
 ```
 
+
+
 Vi definer "features" som "flere måneder" fra features_list
+
+
 ```{r}
 features <- features_list[["flere måneder"]]
 ```
+
+
 
 Vi laver en Lasso-model på vores træningsdata
 
 Responsevariabel
 Her definer y_træningsdata som vores responsvariabel. Det bruges som mål i 
 vores Lasso-model. 
+
+
 ```{r}
 y_train <- train_data$tilskuere
 ```
+
+
 
 Designmatrix for træningsdata
 Vi designer en matrix, som kan bruges direkte af glmnet. 
@@ -2662,37 +3404,55 @@ Kategoriske variabler (dem vi lige har konverteret til faktorer, bliver dummy-
 -kodet). 
 [,-1]: Fjerner intercept-kolonnen, og glmnet håndterer selv interceptet. 
 drop = FALSE: Sikrer, at output altid er en matrix (også ved en variabel).
+
+
 ```{r}
 X_train <- model.matrix(as.formula(paste("~", paste(features, collapse = "+"))), train_data)[, -1, drop = FALSE]
 
 ```
 
+
+
 Vi definer vores lambda-grid
 Vi opretter 100 lambda-værdier mellem 10^3 og 10^-3. Dette bestemmer, hvor 
 meget modellen straffes.
+
+
 ```{r}
 lambda_grid <- 10^seq(3, -3, length = 100)
 ```
 
+
+
 Estimering af Lasso-modellen
 alpha = 1 : Lasso-regressionsmodel
 Modellen estimeres for alle lambda-værdier vi lige har sat. 
+
+
 ```{r}
 lasso_fit <- glmnet(X_train, y_train, alpha = 1, lambda = lambda_grid)
 ```
 
+
+
 Cross-validation for bedste lambda
 Vi finder den bedste balance mellem bias, varians og overfitting.
+
+
 ```{r}
 cv_fit <- cv.glmnet(X_train, y_train, alpha = 1, lambda = lambda_grid)
 best_lambda <- cv_fit$lambda.min
 ```
+
+
 
 Ny kamp data
 Vi laver en tibble, hvor vi manuelt skriver værdierne ind for vores model, som
 skal forudsige tilskuereantallet flere måneder før. 
 De kategoriske variabler bliver sat som "factor, og de numeriske værdier er 
 forsat numeriske værdier.
+
+
 ```{r}
 #| label: lst-variabler
 ny_kamp_flere_måneder <- tibble(
@@ -2706,59 +3466,87 @@ ny_kamp_flere_måneder <- tibble(
 )
 ```
 
+
+
 Vi laver en designmatrix for den nye kampe, som matcher med vores oprindelige 
 designmatrix (X-train). 
 model.matrix() omdanner ny_kamp_flere_måneder til en numerisk matrix. 
 paste(features, collapse = "+"): Sikrer at samem features som i træningen bruges.
 [,-1]: Fjerner intercept.
 drop = FALSE: Bevarer matrix-format (selvom det kun er en række)
+
+
 ```{r}
 X_new_raw <- model.matrix(as.formula(paste("~", paste(features, collapse = "+"))), ny_kamp_flere_måneder)[, -1, drop = FALSE]
 ```
+
+
 
 Vi opretter en tom matrix med samme struktur som træningsdata.
 X_train indeholder alle dummy-variabler, men den nye kamp har kun en konkret
 kombination af levels. Der vil derfor mangle kolonner. Vi opretter derfor nu
 en nul-matrix med præcis samme kolonnenavne og rækkefølge som X_train. 
 
+
+
 ```{r}
 X_new <- matrix(0, nrow = 1, ncol = ncol(X_train))
 colnames(X_new) <- colnames(X_train)
 ```
 
+
+
 Vi indsætter nu de relevante værdier. 
 intersect() finder de dummy-variabler, der findes i begge matricer. Kunn disse
 kolonner fyldes med 1'ere, resten forbliver 0. Hvis vores kolonner ikke matcher,
 så får vi enten en fejl eller en forkert prædiktion, derfor gør vi dette. 
+
+
 ```{r}
 common_cols <- intersect(colnames(X_train), colnames(X_new_raw))
 X_new[, common_cols] <- X_new_raw[, common_cols]
 ```
 
+
+
 Prediktion med Lasso
 Vi bruger predict til at beregne outputtet for vores model
 lasso_fit er den allerede trænede Lasso-model, s = best_lambda vælger den lambda
 som giver den mindste cross validation (CV) fejl. 
+
+
 ```{r}
 tilskuere_pred <- predict(lasso_fit, s = best_lambda, newx = X_new)
 ```
 
+
+
 Vi konverterer resultatet til en numerisk værdi. 
+
+
 ```{r}
 tilskuere_pred <- as.numeric(tilskuere_pred)
 ```
 
+
+
 Vores estimat for kampdagen er 5214 tilskuere. Vi skal huske, at der kan være
 fejl i begge retninger. Vi bruger nu vores cross validation RMSE fra tidligere,
 til at finde det rigtige interval for tilskuereantallet for VFFs næste hjemmekamp.
+
+
 ```{r}
 tilskuere_pred
 ```
+
+
 
 Vi vælger hvilken RMSE vi vil bruge. 
 Vi tager CV-RMSE fra cross-validation, som vi har lavet tidligere.
 Vi bruger filter til at isolere tidspunktet til "Flere måneder før"-modellen.
 Vi bruger efterfølgende pull-funktionen til at trække CV-RMSE ud. 
+
+
 ```{r}
 #| label: lst-rmse-kamp
 rmse_value <- cv_lasso_results %>%
@@ -2766,13 +3554,21 @@ rmse_value <- cv_lasso_results %>%
   pull(CV_RMSE)
 ```
 
+
+
 Vi beregner vores interval
+
+
 ```{r}
 lower <- tilskuere_pred - rmse_value
 upper <- tilskuere_pred + rmse_value
 ```
 
+
+
 Vi printer resultatet
+
+
 ```{r}
 #| label: lst-estimat-kamp
 message("Forventet tilskuertal for næste kamp:\n")
@@ -2780,10 +3576,14 @@ message(round(tilskuere_pred), "±", round(rmse_value), "\n")
 message("Interval: ", round(lower), "til", round(upper), "\n")
 ```
 
+
+
 Vi kan se at vores interval ligger mellem 4663 til 7452. Dvs vi kan ud fra vores model konkludere, at for VFFs næste hjemmekamp imod Brøndby IF vil der være et sted mellem 3808 til 6621 tilskuere. 
 
 Feature sets for alle tidshorisonter. vi definerer nu de forskellige features til de forskellige tidspunkter før kampdag
 flere måneder er en langsigtet prediction, hvorfor der er flere ukendte faktorer de 3 andre er mere kortsigtede, hvorfor der også er mere data til rådighed jo nærmere vi er på kampstart.
+
+
 ```{r}
 feature_sets <- list(
   "flere_måneder" = c(
@@ -2817,7 +3617,11 @@ feature_sets <- list(
 )
 ```
 
+
+
 Træn Lasso modeller for alle tidshorisonter.
+
+
 ```{r}
 train_lasso_model <- function(train_data, features, lambda_grid) {
   
@@ -2858,7 +3662,11 @@ train_lasso_model <- function(train_data, features, lambda_grid) {
 }
 ```
 
+
+
 Lav ny kamp. 
+
+
 ```{r}
 lav_ny_kamp <- function(data, kamp_id, tidspunkt, feature_sets, lasso_models) {
   features <- feature_sets[[tidspunkt]]
@@ -2871,7 +3679,11 @@ lav_ny_kamp <- function(data, kamp_id, tidspunkt, feature_sets, lasso_models) {
 }
 ```
 
+
+
 Predict tilskuere.
+
+
 ```{r}
 predict_tilskuere <- function(tidspunkt, ny_kamp, lasso_models) {
   
@@ -2896,27 +3708,43 @@ predict_tilskuere <- function(tidspunkt, ny_kamp, lasso_models) {
 }
 ```
 
+
+
 vi definerer en lambda grid som kontrollerer hvor kraftigt vi straffer store koeffecienter for lasso, som bruges til at undgå overfitting.
+
+
 ```{r}
 lambda_grid <- 10^seq(3, -3, length = 100)
 ```
 
+
+
 Vi træner en lasso model pr tidshorisont, med de features som passer til den. lapply sikrer, at vi laver alle modeller uden at gentage kode.
+
+
 ```{r}
 lasso_models <- lapply(names(feature_sets), function(tidspunkt) {
   train_lasso_model(train_data = train_data, features = feature_sets[[tidspunkt]], lambda_grid = lambda_grid)
 })
 ```
 
+
+
 Vi navngiver modellerne med tidshorisonterne så vi kan bruge den igen senere.
+
+
 ```{r}
 names(lasso_models) <- names(feature_sets)
 ```
+
+
 
 ### Evaluering af vores model på en allerede spillet kamp (fra datasættet)
 Funktion til at evaluere én kamp på alle tidshorisonter. Denne funktion tager kamp_id og returnerer predictions for alle tidshorisonterne
 for hver tidshorisont oprettes: lav_ny_kamp (opretter en dataframe med features) Predict_tilskuere(laver prediction med korrekte lasso model)
 Resultat gemmes i tibble.
+
+
 ```{r}
 evaluer_kamp <- function(kamp_id, data, lasso_models, feature_sets) {
   
@@ -2932,7 +3760,11 @@ evaluer_kamp <- function(kamp_id, data, lasso_models, feature_sets) {
 }
 ```
 
+
+
 vi kan nu teste vores modeller med forskellige tidshorisonter ved at indtaste kamp id fra en af kampene i datasættet, indtast blot et tal mellem 1-204.og se hvordan de varierer på de forskellige tidspunkter før kampstart.
+
+
 ```{r}
 kamp_id <- 120
 eval_data <- evaluer_kamp(kamp_id, train_data, lasso_models, feature_sets)
@@ -2942,8 +3774,12 @@ eval_data <- evaluer_kamp(kamp_id, train_data, lasso_models, feature_sets)
 print(eval_data)
 ```
 
+
+
 Plot prædiktioner vs. faktisk tilskuertal.
 vi visualiserer sammenligningen af modellens prædiktioner med det faktiske tilskuertal.
+
+
 ```{r}
 faktisk <- train_data$tilskuere[kamp_id]
 ```
@@ -2957,6 +3793,8 @@ ggplot(eval_data, aes(x = Tidspunkt, y = Prediktion)) +
        x = "Tid før kamp") +
   theme_minimal()
 ```
+
+
 
 ## Data i en forretningskontekst
 
