@@ -1236,7 +1236,7 @@ Her er koden der kan køres for at installere pakken: devtools::install_github("
 Indlæser den færdigbehandlede transfer-RDS-fil.
 
 ```{r}
-readRDS("VFFdata/TransfermarktData")
+readRDS("VFFdata/TransfermarktData.rds")
 ```
 
 Indlæsning af nødvendige pakker.
