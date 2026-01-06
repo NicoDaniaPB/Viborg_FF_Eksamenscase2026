@@ -75,16 +75,17 @@ Der er altså inddraget regressionsbaserede machine learning-modeller, som er ef
 ## Analyse
 Hvilke faktorer påvirker antallet af tilskuere? (hvad påvirker mere end andet)
 Her benyttes følgende kode for at undersøge om variablerne påvirker uafhængigheden af hinanden.
-Stor model - linenær regression med alle variabler (@lst-stor-model). 
+Stor model - linenær regression med alle variabler.
 
-Heraf kan det konkluderes at 12 variabler er eksluderet grundet perfekt multikollinearitet, og en efterfølgende VIF-analyse (@lst-vif-stor-modell).
+Heraf kan det konkluderes at 12 variabler er eksluderet grundet perfekt multikollinearitet, og en efterfølgende VIF-analyse. 
+
 Det viser at tre variabler blev ekskluderet grundet VIF-værdi på over 3. Dette sikrede de resterende variable at kunne indgå i modellen uden at skabe en øget risiko.
 
-Billetsalget viste sig at være den mest signifikante variable i datasættet. Fjernede man følgende variable faldt resultat for R^2 med hele 0,6153, som svarer til et fald på 30%. Dette indikerer, at billetsalget alene kunne forklare en væsentlig del af variation tilskuerantallet. Hermed udgør variablen en central rolle i modellen. Her blev samme påvirkning observeret på tværs af modellerne, hvilket understreger variablen betydning (@lst-print-metrics).
+Billetsalget viste sig at være den mest signifikante variable i datasættet. Fjernede man følgende variable faldt resultat for R^2 med hele 0,6153, som svarer til et fald på 30%. Dette indikerer, at billetsalget alene kunne forklare en væsentlig del af variation tilskuerantallet. Hermed udgør variablen en central rolle i modellen. Her blev samme påvirkning observeret på tværs af modellerne, hvilket understreger variablen betydning.
 
 Hvilken model performer bedst (Lasso) → hvad betyder det for VFF og hvordan kan de arbejde med det → Hvad betyder valg af model
 Ved model resultaterne viser at Lasso model, der overordnet performer bedst. Følgende resultater på tidshorisonterne er:
-3 dage har den en RMSE på 186,5461 & R^2 på 0,9864, hvilket indikerer høj forklaring, en høj forklaringsgrad og lav forudsigelsesfejl. Ved 7 dage, performer Lasso bedst med en RMSE på 347 med en R^2 på 0,952957. samme tendens ses ved 7 og 10 dage med de laveste værdier(RMSE 347 og 503,9). ved længere tidshorisonter ændrer performance sig og en simpel lineær regression performer bedst med en RMSE på 1262,9952 med en R^2 på 0,3782062, som er en markant lavere præcision (@lst-metrics).
+3 dage har den en RMSE på 186,5461 & R^2 på 0,9864, hvilket indikerer høj forklaring, en høj forklaringsgrad og lav forudsigelsesfejl. Ved 7 dage, performer Lasso bedst med en RMSE på 347 med en R^2 på 0,952957. samme tendens ses ved 7 og 10 dage med de laveste værdier(RMSE 347 og 503,9). ved længere tidshorisonter ændrer performance sig og en simpel lineær regression performer bedst med en RMSE på 1262,9952 med en R^2 på 0,3782062, som er en markant lavere præcision.
 
 Hvordan kan en model forudsige? → (Dette viser med Lasso modellen længere nede)
 Efter Lasso-modellen med den bedste bias-variance-tradeoff (laveste RMSE), så anvendes den i praktisk til at analysere VFFs næste hjemmekamp. Her har vi følgende variabler oplyst:
@@ -96,10 +97,10 @@ Dato: 15
 Måned: Februar
 Klokkeslæt: 18:00
 
-Ikke alle variabler kendes, som fx vejrdata eller billetsalg, da tidshorisonten er flere måneder fra kampdagen. Den store model kan estimere et interval for tilskuertallet. Data blev klargjort, og skulle testes i vores Lasso-model flere måneder før kampstart. Det blev et estimat på 5214 tilskuere. Her bruges CV-RMSE til at finde intervallet. CV-RMSE bruges (som er 1406) og ikke test-RMSE, da det er nye data som modellen skal performe på, og ikke kendte data som det er ved test-RMSE (@lst-rmse-kamp).
+Ikke alle variabler kendes, som fx vejrdata eller billetsalg, da tidshorisonten er flere måneder fra kampdagen. Den store model kan estimere et interval for tilskuertallet. Data blev klargjort, og skulle testes i vores Lasso-model flere måneder før kampstart. Det blev et estimat på 5214 tilskuere. Her bruges CV-RMSE til at finde intervallet. CV-RMSE bruges (som er 1406) og ikke test-RMSE, da det er nye data som modellen skal performe på, og ikke kendte data som det er ved test-RMSE.
 
-Intervallet for tilskuere er derfor mellem 3808 til 6621. Det estimeres derfor, at der kommer mellem 3808 og 6621 tilskuere til næste hjemmekamp imod Brøndby IF. Igen vil præcisionen forbedres, jo tættere på kampstart, da vejrdata og billetsalg data er med, som forbedrer præcisionen af modellen. Disse modeller kan ikke anvendes, da det ikke er så tæt på kampstart, at disse data er tilgængelige. Modellerne er klargjort, så man bare manuelt skal taste værdierne, og så giver den resultatet (@lst-variabler)
-Derudover er der lavet en funktion i bunden, som kan teste modellerne på kampe fra datasættet, så det kan tjekkes hvor tæt på det faktiske tilskuertal modellerne kommer (@lst-estimat-kamp)
+Intervallet for tilskuere er derfor mellem 3808 til 6621. Det estimeres derfor, at der kommer mellem 3808 og 6621 tilskuere til næste hjemmekamp imod Brøndby IF. Igen vil præcisionen forbedres, jo tættere på kampstart, da vejrdata og billetsalg data er med, som forbedrer præcisionen af modellen. Disse modeller kan ikke anvendes, da det ikke er så tæt på kampstart, at disse data er tilgængelige. Modellerne er klargjort, så man bare manuelt skal taste værdierne, og så giver den resultatet.
+Derudover er der lavet en funktion i bunden, som kan teste modellerne på kampe fra datasættet, så det kan tjekkes hvor tæt på det faktiske tilskuertal modellerne kommer.
 
 Prognosen gør det muligt for Viborg FF at kunne justere aktiveringen af billetter, tilpasse planlægningen, indkøb af varer og planlægge personale. her vil det være muligt at når de nærmere sig kampdagen tilpasse ressourceallokeringen for at kunne reducere spild.
 
@@ -1236,7 +1237,7 @@ Her er koden der kan køres for at installere pakken: devtools::install_github("
 Indlæser den færdigbehandlede transfer-RDS-fil.
 
 ```{r}
-readRDS("VFFdata/TransfermarktData.rds")
+total_all <- readRDS("VFFdata/TransfermarktData.rds")
 ```
 
 Indlæsning af nødvendige pakker.
@@ -1650,7 +1651,6 @@ test_data <- test_data |>
 
 Vi laver en stor lineær regressionsmodel for at afdække potentielle sammenhænge i vores mange forklarende variabler. 
 ```{r}
-#| label: lst-stor-model
 stor_lm_model <- lm(
   tilskuere ~ temp_dry + wind_speed + nedbør_seneste_7_timer +
     ugedag + placering_lag_hjemme + placering_lag_ude + mål_seneste_3_hjemme
@@ -1857,7 +1857,6 @@ stor_lm_model_flere_måneder <- lm(
 
 Her beregner vi VIF på modellen der kan forudsige flere måneder i forvejen
 ```{r}
-#| label: lst-vif-stor-model
 vif(stor_lm_model_flere_måneder)
 ```
 
@@ -2384,7 +2383,6 @@ Vi samler alle modeller i en tibble
 Vi bruger bind_rows til at samle alle modeller, og bruger arrange til at 
 sorter efter den bedste (laveste) MSE. 
 ```{r}
-#| label: lst-metrics 
 metrics_samlet_alle <- bind_rows(
   metrics_lm,
   metrics_ridge,
@@ -2396,7 +2394,6 @@ metrics_samlet_alle <- bind_rows(
 
 Vi ser resultatet
 ```{r}
-#| label: lst-print-metrics
 print(metrics_samlet_alle)
 ```
 
