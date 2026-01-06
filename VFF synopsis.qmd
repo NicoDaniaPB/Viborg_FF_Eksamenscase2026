@@ -244,7 +244,7 @@ Gemmer data
 saveRDS(kampliste_samlede, "VFFdata/superstatsliste.rds")
 ```
 
-Indlæs data igen fra RDS-filen. Alle andre steps før nu kan udkommenteres. 
+Indlæser data igen fra RDS-filen. Alle andre steps før nu kan udkommenteres. 
 ```{r}
 gemt_kampliste <- readRDS("VFFdata/superstatsliste.rds")
 ```
@@ -295,7 +295,7 @@ kampe_df <- kampe_df |>
   select(-find_runde)  
 ```
 
-Her renser vi dataene, giver kolonnerne passende navne, fjerner kolonne 7 (TV-logoer i billedformat på hjemmesiden), Vi fjerner overflødige rækker, filtrerer kun de kampe hvor der findes et resultat, og rydder op i tekstformater såsom tilskuertal og ugedage.
+Her renses dataen, kolonnerne gives passende navne, kolonne 7 fjernes (TV-logoer i billedformat på hjemmesiden), Overflødige rækker fjernes, filtrerer kun de kampe hvor der findes et resultat, og rydder op i tekstformater såsom tilskuertal og ugedage.
 ```{r}
 kampe_df <- kampe_df |>
   # # Fjerner kolonnen X7, kolonnen indeholdte TV-logoer i billedformat på hjemmesiden.
@@ -900,7 +900,7 @@ Upload af relevante pakker.
 pacman::p_load("tidyverse", "rvest", "stringr", "janitor", "lubridate", "RSQLite")
 ```
 
-Vi starter med at indlæse Superstatsdata, da kampdatoerne skal bruges til at hente vejrdata.
+Til at starte med indlæses Superstatsdata, da kampdatoerne skal bruges til at hente vejrdata.
 ```{r}
 vff_hjemmekampe <- read_rds("VFFdata/superstatsvff.rds")
 ```
@@ -1146,7 +1146,7 @@ Load af vff hjemmekamp-data RDS-fil
 VFF_Hjemmekampe <- read_rds("VFFdata/superstatsvff.rds")
 ```
 
-Vi konverterer tidsstempel til date-format for at muliggøre join mellem de to tabeller
+Tidsstempel konverteres til date-format for at muliggøre join mellem de to tabeller
 ```{r}
 VFF_Hjemmekampe1 <- VFF_Hjemmekampe |> 
   mutate(
@@ -1224,7 +1224,7 @@ saveRDS(VFF_Komplet1, file = "VFFdata/VFF_Komplet.rds")
 ```
 ### Transfer data 
 Transferdata har været meget svære at få fingrene i, da de fleste hjemmesider med data på området er utilgængelige for os.
-Vi har derfor fundet et open-source-projekt, skabt af en eller flere privatpersoner, som gør det lettere at hente fodbolddata i R.
+Men dette open-source-projekt, skabt af en eller flere privatpersoner, gør det lettere at hente fodbolddata i R.
 Pakken hedder worldfootballR [@worldfootballR]. Pakken blev den 18. september 2025 arkiveret og bliver ikke længere vedligeholdt.
 Det kan give udfordringer i forhold til reproducerbarhed fremadrettet.Hvis det viser sig, at transferdata har en signifikant betydning for antallet af tilskuere til VFF's hjemmekampe, er antagelsen dog, at VFF selv har adgang til deres interne transferdata. Disse data har vi dog ikke adgang til på nuværende tidspunkt. Kør installationen herunder, hvis du ikke allerede har installeret devtools.
 devtools bruges til at installere R-pakker direkte fra GitHub.
@@ -1403,7 +1403,7 @@ data_fcidk_rds <- readRDS("VFFdata/fcidk.rds")
 ```
 
 ### RSQLight
-Vi starter med at indlæse de nødvendige pakker. 
+De nødvendige pakker indlæses. 
 Tidyverse bruges til databehandling.
 RSQlite bruges til at arbejde med databaser.
 
@@ -1416,19 +1416,19 @@ Oprettelse af SQLite database
 if (!dir.exists("VFFdata")) dir.create("VFFdata")
 ```
 
-Vi opretter forbindelse til SQLite databasen. 
+Forbindelse til SQLite databasen oprettes. 
 ```{r}
 connection_VFFdata <- dbConnect(SQLite(), "VFFdata/fodbolddata.sqlite")
 
 ```
 
-Vi indlæser VFF kampdata og fjerner helligdag-navn. 
+VFF kampdata indlæses og fjerner helligdag-navn. 
 ```{r}
 VFF_Komplet <- readRDS("VFFdata/VFF_Komplet.rds") |> 
   select(-Helligdag_navn)
 ```
 
-Vi indlæser DMI vejrdata og fjerner rækker uden kampdatoer. 
+DMI vejrdata indlæses og rækker uden kampdatoer fjernes. 
 ```{r}
 DMI_data <- readRDS("VFFdata/dmi.rds") |> 
   filter(!is.na(kamp_dato))
@@ -1450,9 +1450,9 @@ Indlæser informationer om modstanderne med fcidk.
 data_fcidk_rds <- readRDS("VFFdata/fcidk.rds")
 ```
 
-Vi smider nu data i SQLite
-dbWriteTable = Vi gemmer en dataframe permanent i en database som en tabel. 
-overwrite = Vi sikre at den gamle data overskrives hver gang vi kører koden.
+Data lagres nu i SQLite
+dbWriteTable = En dataframe gemmes permanent i en database som en tabel. 
+overwrite = Den gamle data sikres at overskrives hver gang vi kører koden.
 ```{r}
 dbWriteTable(connection_VFFdata, "vff", data_vffkort01_rds, overwrite = TRUE)
 dbWriteTable(connection_VFFdata, "fci", data_fcidk_rds, overwrite = TRUE)
@@ -1461,23 +1461,23 @@ dbWriteTable(connection_VFFdata, "VFF_Komplet", VFF_Komplet, overwrite = TRUE)
 dbWriteTable(connection_VFFdata, "Transfermarkt_data", Transfermarkt_data, overwrite = TRUE)
 ```
 
-Vi ser alle tabeller der findes i databasen. 
+Ser alle tabeller der findes i databasen. 
 ```{r}
 dbListTables(connection_VFFdata)
 ```
 
-Vi lukker databasen. 
+Lukker databasen. 
 ```{r}
 dbDisconnect(connection_VFFdata)
 ```
 
-vi genåbner forbindelsen til databasen. 
+Genåbner forbindelsen til databasen. 
 ```{r}
 connection_VFFdata <- dbConnect(SQLite(), "VFFdata/fodbolddata.sqlite")
 ```
 
 dbGetQuery henter data fra databasen og laver dem om til en dataframe. 
-Vi henter alle kolonner med SELECT
+Henter alle kolonner med SELECT
 ```{r}
 SQL_DMI <- dbGetQuery(connection_VFFdata, "SELECT * FROM DMI_data")
 SQL_VFF_Komplet <- dbGetQuery(connection_VFFdata, "SELECT * FROM VFF_Komplet")
@@ -1486,17 +1486,17 @@ SQL_vff <- dbGetQuery(connection_VFFdata, "SELECT * FROM vff")
 SQL_fci <- dbGetQuery(connection_VFFdata, "SELECT * FROM fci")
 ```
 
-Vi lukker databasen. 
+Lukker databasen. 
 ```{r}
 dbDisconnect(connection_VFFdata)
 ```
 
-Vi åbner forbindelsen.
+Åbner forbindelsen.
 ```{r}
 connection_VFFdata <- dbConnect(SQLite(), "VFFdata/fodbolddata.sqlite")
 ```
 
-Vi samler alle kampdata og får en komplet tabel over alle kampe. 
+Alle kampdata samles nu og der oprettes en komplet tabel over alle kampe. 
 ```{r}
 sql_samlet <- dbGetQuery(connection_VFFdata, "
 SELECT
@@ -1576,12 +1576,12 @@ WHERE V.sæson BETWEEN '2003/2004' AND '2025/2026'
 ")
 ```
 
-Vi lukker databasen.
+Lukker databasen.
 ```{r}
 dbDisconnect(connection_VFFdata)
 ```
 
-Vi gemmer filen, som en RDS
+Gemmer filen, som en RDS
 ```{r}
 saveRDS(sql_samlet, "VFFdata/VFF_samlet_variabler.rds") 
 ```
@@ -1598,8 +1598,8 @@ VFF_samlet_variabler <- readRDS("VFFdata/VFF_samlet_variabler.rds")
 ```
 
 ### Preprocess 
-Vi konverter relevante variabler til faktorer. Vi bruger mutate til at bygge videre på de samlet variabler, og definer dem 
-"as factor".Dette er vigtigt i forbindelse med lineær regression, hvor faktorvariable behandles som kategoriske og derfor omsættes til dummyvariable i matricen.
+Konvertere relevante variabler til faktorer. Bruger mutate til at bygge videre på de samlet variabler, og definer dem 
+"as factor".Dette er vigtigt i forbindelse med lineær regression, hvor faktor variable behandles som kategoriske og derfor omsættes til dummyvariable i matricen.
 ```{r}
 VFF_samlet_variabler <- VFF_samlet_variabler |>
   mutate(
@@ -1613,7 +1613,7 @@ VFF_samlet_variabler <- VFF_samlet_variabler |>
   )
 ```
 
-Vi samler udehold der kun optræder få gange i en fælles kategori. Vi tæller hvor mange gange et hold opretter, og laver en ny kolonne der hedder "n_udehold" som tæller antallet af gange holdet gentages i datasættet. Vi bruger mutate og if_else til at derfiner at et "stor hold" er et hold hvor observation gentages mere end 2 gange. Dvs hold der gentages 2 eller færre gange defineres efterfølgende som faktoren "små hold". Til sidst bruger vi select til at fjerne kolonnen "n_udehold". 
+Nu samles udehold der kun optræder få gange i en fælles kategori. Optælling af hvor mange gange et hold oprettes, og laver en ny kolonne der hedder "n_udehold" som tæller antallet af gange holdet gentages i datasættet. Mutate anvendes og if_else til at definer at et "stor hold" er et hold hvor observation gentages mere end 2 gange. Dvs. hold der gentages 2 eller færre gange defineres efterfølgende som faktoren "små hold". Til sidst bruges select til at fjerne kolonnen "n_udehold". 
 ```{r}
 VFF_samlet_variabler <- VFF_samlet_variabler |>
   add_count(udehold, name = "n_udehold") |>
@@ -1625,10 +1625,9 @@ VFF_samlet_variabler <- VFF_samlet_variabler |>
 ```
 
 ## Modellering
-Vi bruger set.seed til at definer, at vi er gruppe 1. nrow tæller hvor rækker
-(dvs. kampe) der er i vores datasæt. vi gemmer det i et objekt vi kalder "n".
-Vi opdeler efterfølgende dataene helt tilfældigt 70/30 procent. Vi definer
-vores træningsindex som 70%, og vores test data som minus træningsindex, dvs
+Set.seed bruges nu til at definer, gruppe 1. nrow tæller hvor rækker
+(dvs. kampe) der er i datasættet. Det gemmes i et objekt kaldet "n".
+Efterfølgende opdeles dataene helt tilfældigt 70/30 procent. Træningsindex defineres som 70%, og test data som minus træningsindex, dvs
 100 procent minus 70 procent, som gir 30 procent. 
 ```{r}
 set.seed(1)
@@ -1638,8 +1637,7 @@ train_data <- VFF_samlet_variabler[train_index, ]
 test_data  <- VFF_samlet_variabler[-train_index, ]
 ```
 
-Vi sikrer at test_data kun har niveauer, som modellen kender. Vi bruger mutate til at bygge videre på test_dataene, og sørger for, udehold
-gendannes som faktor med samme levels som i træningsdataene. Levels(train_data$udehold henter alle de niveauer, som udehold har i trænings-
+Nu skal det sikres at test_data kun har niveauer, som modellen kender. Mutate anvendes til at bygge videre på test_dataene, og sørger for, udehold gendannes som faktor med samme levels som i træningsdataene. Levels(train_data$udehold henter alle de niveauer, som udehold har i trænings-
 -datasættet.
 ```{r}
 test_data <- test_data |> 
@@ -1648,7 +1646,7 @@ test_data <- test_data |>
 ```
 ### Stor model - linenær regression med alle mulige variabler
 
-Vi laver en stor lineær regressionsmodel for at afdække potentielle sammenhænge i vores mange forklarende variabler. 
+Nu laves en stor lineær regressionsmodel for at afdække potentielle sammenhænge i de mange forklarende variabler. 
 ```{r}
 #| label: lst-stor-model
 stor_lm_model <- lm(
@@ -1664,13 +1662,13 @@ stor_lm_model <- lm(
 ```
 
 Test for multikollinearitet - VIF (Variance inflation factor) via car-pakken
-VIF-testen fejler, fordi vi har perfekt multikollinearitet
+VIF-testen fejler, fordi der er perfekt multikollinearitet
 ```{r}
 # vif(stor_lm_model)
 # Udkommenteret da Quatro ikke kan håndtere multikollinearitet.
 ```
 
-Vi finder de perfekte lineære afhængigheder
+Nu skal de perfekte lineære afhængigheder findes
 ```{r}
 alias(stor_lm_model)
 
@@ -1682,15 +1680,15 @@ kampdag_X <- model.matrix(stor_lm_model)
 qr(kampdag_X)$rank
 ncol(kampdag_X)
 ```
-Vi har 57 kolonner, 45 kolonner er ikke lineært afhængige af andre kolonner. 
+Der er 57 kolonner, 45 kolonner er ikke lineært afhængige af andre kolonner. 
 Det betyder, at 12 kolonner er lineræt afhængige af andre kolonner.
 
-I samlet_variabler har vi vores rå data, her har vi 43 kolonner, som repræsenterer 
-vores 43 variabler. De 57 kolonner her antallet af kolonner i designmatricen 
-efter vi har kørt dummy-kodningen. De numeriske variabler giver 1 kolonne. 
+I samlet_variabler er der rå data, her er der 43 kolonner, som repræsenterer 
+de 43 variabler. De 57 kolonner har antallet af kolonner i designmatricen 
+efter dummy-kodningen er kørt. De numeriske variabler giver 1 kolonne. 
 Faktorvariablerne bliver omdannet til dummies, og giver k - 1, hvor k er antallet af dummykolonner.
 
-Vores model lider af multikollinearitet, fordi flere af  vores variabler
+Modellen lider af multikollinearitet, fordi flere af variablerne
 beskriver det samme fænomen. Det giver perfekt lineær afhængighed mellem 
 variablerne (dette kaldes også aliasing). Nogle af de variabler der forårsager 
 den perfekt mulitkollinearitet er bl.a. følgende:
@@ -1698,10 +1696,10 @@ ugedag / tidsperiode (tidsperiode indeholder informationer om ugedag)
 Ferievariablerne (ferieperioden gentages flere gange, de er derfor perfekt
 afhængige af hinanden)
 Transfervariablerne (balance = indkomst - omkostninger, dvs perfekt afhængighed)
-Lagged tilskueretal (d3,d7,d10). Vi inkluderer dem alle og lager dem, det er 
+Lagged tilskueretal (d3,d7,d10). De inkluderes dem alle og bliver lagret, det er 
 lagged versioner af samme variabel, og de er derfor meget stærkt korrelerede. 
-Dette giver perfekt multikollinearitet. Det vi gør nu, er at vi beholder en 
-af disse variabler, så vi ikke beskriver det samme igen og igen.
+Dette giver perfekt multikollinearitet. Nu beholdes en 
+af disse variabler, så det samme ikke beskrives igen og igen.
 
 ### Stor model for 3 dage før - linenær regression med alle mulige variabler
 ```{r}
@@ -1722,10 +1720,10 @@ stor_lm_model_ny <- lm(
 )
 ```
 
-Vi tester igen for multikollinearitet - VIF (Variance inflation factor) via car-pakken
+Nu testes der for multikollinearitet igen - VIF (Variance inflation factor) via car-pakken
 Model.matrix udtrækker desginmatricen fra modellen 
 qr() laver en QR-dekomposition af designmatricen
-$rank er antalelt af lineært uafhængige kolonner i X (som vi har defineret som
+$rank er antalelt af lineært uafhængige kolonner i X (som er defineret som
 modelmatricen)
 ncol tæller antallet af regressorer i modellen, dvs det antal af kolonner, som 
 ikke er lineært afhængige af hinanden. 
@@ -1737,7 +1735,7 @@ ncol(X)
 alias(stor_lm_model_ny)
 ```
 
-Det kan ses, at net_balance skyldes fejlen. Den fjerner vi nu
+Det kan ses, at net_balance skyldes fejlen. Den fjernes nu
 ```{r}
 stor_lm_model_ny <- lm(
   tilskuere ~ 
@@ -1756,10 +1754,10 @@ stor_lm_model_ny <- lm(
 )
 ```
 
-Vi tester igen for multikollinearitet - VIF (Variance inflation factor) via car-pakken
+Nu testes der igen for multikollinearitet - VIF (Variance inflation factor) via car-pakken
 Model.matrix udtrækker desginmatricen fra modellen 
 qr() laver en QR-dekomposition af designmatricen
-$rank er antallet af lineært uafhængige kolonner i X (som vi har defineret som
+$rank er antallet af lineært uafhængige kolonner i X (som er defineret som
 modelmatricen)
 ncol tæller antallet af regressorer i modellen, dvs det antal af kolonner, som 
 ikke er lineært afhængige af hinanden. 
@@ -1775,15 +1773,15 @@ Nu er der 42/42, så ingen lineære afhængighed.
 alias(stor_lm_model_ny)
 ```
 
-Vi tester nu for VIF igen. 
+Nu testes der for VIF igen. 
 ```{r}
 vif(stor_lm_model_ny)
 ```
 
 Det kan ses, at ingen af variablerne har et kritisk VIF-niveau (over 5). 
-De fleste ligger på et moderat niveau mellem 1 og 5. Vi skal dog være OBS på,
-at mål_sæson_lag_udehold og runde nærmere sig et højt niveau. Vi har allerede
-en tårnhøj R^2, så vi prøver lige at fjerne mål_sæson_lag_udehold. 
+De fleste ligger på et moderat niveau mellem 1 og 5. Vær opmærksom på,
+at mål_sæson_lag_udehold og runde nærmere sig et højt niveau. Der er allerede
+en tårnhøj R^2, så der prøvers lige at fjerne mål_sæson_lag_udehold. 
 ```{r}
 stor_lm_model_3_dage <- lm(
   tilskuere ~ 
@@ -1801,7 +1799,7 @@ stor_lm_model_3_dage <- lm(
 )
 ```
 
-Vi tester nu for VIF igen. 
+Nu testes der for VIF igen. 
 ```{r}
 vif(stor_lm_model_3_dage)
 ```
@@ -1855,7 +1853,7 @@ stor_lm_model_flere_måneder <- lm(
 )
 ```
 
-Her beregner vi VIF på modellen der kan forudsige flere måneder i forvejen
+Her beregnes VIF på modellen der kan forudsige flere måneder i forvejen
 ```{r}
 #| label: lst-vif-stor-model
 vif(stor_lm_model_flere_måneder)
@@ -1864,8 +1862,8 @@ vif(stor_lm_model_flere_måneder)
 ### Samlet for lineære modeller
 
 Predict på testdata
-Vi bruger predict til at tage koefficientere fra den estimerede model, (som 
-vi har defineret foroven). 
+Predict bruges til at tage koefficientere fra den estimerede model, (som 
+der er defineret foroven). 
 ```{r}
 tilskuere_hat3 <- predict(stor_lm_model_3_dage, newdata = test_data)
 tilskuere_hat7 <- predict(stor_lm_model_7_dage, newdata = test_data)
@@ -1874,11 +1872,11 @@ tilskuere_hat_flere_måneder <- predict(stor_lm_model_flere_måneder, newdata = 
 ```
 
 Funktion til beregning af RMSE og MSE
-Vi opretter en funktion, som vi kalder "calc_metrics". 
+Nu oprettes en funktion, som kaldes "calc_metrics". 
 obs er de observerede værdier (dvs faktiske tilskuertal)
 pred er forudsagtes værdier fra vores model
-Efter det skriver vi formlerne til at beregne hhv. MSE, RMSE og R^2. 
-Til sidst returnerer vi en liste med alle tre metrics.
+Efter det sættes formlerne til at beregne hhv. MSE, RMSE og R^2. 
+Til sidst returneres en liste med alle tre metrics.
 ```{r}
 calc_metrics <- function(obs, pred) {
   mse <- mean((obs - pred)^2)
@@ -1890,7 +1888,7 @@ calc_metrics <- function(obs, pred) {
 }
 ```
 
-Vi definer vores modeller, og hvad der skal beregnes
+Nu defineres vores modeller, og hvad der skal beregnes
 ```{r}
 metrics_3_dage    <- calc_metrics(test_data$tilskuere, tilskuere_hat3)
 metrics_7_dage    <- calc_metrics(test_data$tilskuere, tilskuere_hat7)
@@ -1898,7 +1896,7 @@ metrics_10_dage   <- calc_metrics(test_data$tilskuere, tilskuere_hat10)
 metrics_flere_måneder   <- calc_metrics(test_data$tilskuere, tilskuere_hat_flere_måneder)
 ```
 
-Vi ser resultateterne for vores lineære regressionsmodeller
+Resultateterne for vores lineære regressionsmodeller kan ses
 ```{r}
 metrics_3_dage
 metrics_7_dage
@@ -1906,8 +1904,8 @@ metrics_10_dage
 metrics_flere_måneder
 ```
 
-Vi samler resultaterne i en tibble
-Vi smider de i en tibble, og bruger c (combine) til kombiner de forskellige 
+Resultaterne samles nu i en tibble
+Resultates lægges i en tibble, og bruger c (combine) til kombiner de forskellige 
 modeller for de forskellige perioder, og nøgletallene for hver model. 
 ```{r}
 metrics_samlet <- tibble(
@@ -1918,12 +1916,12 @@ metrics_samlet <- tibble(
 )
 ```
 
-Vi laver et ggplot til at se residualerne, dvs hvor meget prikkerne afviger 
+Ggplot laves for at se residualerne, dvs hvor meget prikkerne afviger 
 fra linjen og hvor præcis modellen er. 
 
-Vi starter med at samle dataene til plottet. 
-Vi bruger bind rows til at sættrer rækkerne fra de forskellige tabeller sammen.
-Vi har vores model, vores observeret værdi og vores forudsagte (predicted)
+Dataene til plottet samles til at starte med. 
+Bind rows bruges til at sætte rækkerne fra de forskellige tabeller sammen.
+Nu er der modellen, den observeret værdi og den forudsagte (predicted)
 Værdi. 
 ```{r}
 plot_data <- bind_rows(
@@ -1950,17 +1948,17 @@ plot_data <- bind_rows(
 )
 ```
 
-Vi laver vores ggplot ud fra vores plot_data. 
+Ggplot laves nu ud fra plot_dataen. 
 x er = observed og y = predicted 
 geom_point() tegner et punkt for hver observation.
 alpha = 0.4 gør punkterne halvgennemsigtige
-geom_abline tegner en 45 graders linje. Hvor vi definer at den skal være 
+geom_abline tegner en 45 graders linje. Hvor der defines at den skal være 
 stiplet eller "dashed", og at farven skal være "rød".
-Vi bruger facet_wrap til at lave separate plots for hver model
+Nu bruges facet_wrap til at lave separate plots for hver model
 ~ betyder, at hver model får sit eget plit
 scales = "free" betydet, at hver plto kan have sin egen skal på x- og y-aksen,
 så alle punkterne passer. 
-Vi bruger labs til at lave overskrifterne. 
+Labs bruges til at lave overskrifterne. 
 ```{r}
 ggplot(plot_data, aes(x = Observed, y = Predicted)) +
   geom_point(alpha = 0.4) +
@@ -1974,28 +1972,28 @@ ggplot(plot_data, aes(x = Observed, y = Predicted)) +
   theme_minimal()
 ```
 
-Jo tættere på kampdagen vi er, jo mindre bliver residualerne. Dette betyder, at modellen bliver mere og mere præcis, jo tættere på kampdagen vi kommer. Årsagen  til denne udvikling, er at vi har flere variabler jo tættere på kampdagen vi er. Dette betyder, at vores model kan forklare mere af variationen, hvilket bekræftes ved at R^2 stiger jo tættere på kampdagen vi kommer. 
+Jo tættere på kampdagen, jo mindre bliver residualerne. Dette betyder, at modellen bliver mere og mere præcis, jo tættere på kampdagen. Årsagen  til denne udvikling, er at der er flere variabler jo tættere på kampdagen. Dette betyder, at modellen kan forklare mere af variationen, hvilket bekræftes ved at R^2 stiger jo tættere på kampdagen.  
 
 ### Lasso / Ridge regression (shrinkage-metoder)
 
 Ridge og lasso regression
 
 Lambda-grid
-Vi opretter 100 lamda-værdier fra 10^5 til 10^-3
-Vi bruger det til regularisering i shrinkage metoder (Ridge og Lasso).
+Nu oprettes der 100 lamda-værdier fra 10^5 til 10^-3
+Det bruges til regularisering i shrinkage metoder (Ridge og Lasso).
 Jo større lamda-værdien er, jo større er straffen. En lille lambda-værdi, er 
-næsten det samme som almindelig lineær regression. Vi vurder 100 lambda-værdier,
-til at være tilstrækkeligt. 
+næsten det samme som almindelig lineær regression. Det vurderes at 100 lambda-værdier,
+vil være tilstrækkeligt. 
 ```{r}
 lambda_grid <- 10^seq(5, -3, length = 100)
 ```
 
 Funktion til metrics
-Vi opretter en funktion, som vi kalder "calc_metrics". 
+Der oprettes en funktion, som der kaldes "calc_metrics". 
 Obs er de observerede værdier (dvs faktiske tilskuertal)
 pred er forudsagtes værdier fra vores model
-Efter det skriver vi formlerne til at beregne hhv. MSE, RMSE og R^2. 
-Til sidst returnerer vi en liste med alle tre metrics.
+Efter det sættes formlerne til at beregne hhv. MSE, RMSE og R^2. 
+Til sidst returneres en liste med alle tre metrics.
 ```{r}
 calc_metrics <- function(obs, pred) {
   mse <- mean((obs - pred)^2)
@@ -2008,7 +2006,7 @@ calc_metrics <- function(obs, pred) {
 ```
 
 Funktion til at lave metrics tibble
-Vi pakker vores resultater i en tibble med vores værdier, og hvilke modeltype
+Nu pakkes resultater i en tibble med værdierne, og hvilke modeltype
 det er. Formålet her, at at gære resultaterne lettere at sammenligne og samle. 
 ```{r}
 make_metrics_tibble <- function(obs, pred, model_name, lambda, periode) {
@@ -2025,8 +2023,8 @@ make_metrics_tibble <- function(obs, pred, model_name, lambda, periode) {
 ```
 
 Base features
-Vi definer de fælles forklarende variabler for de fleste modeller.
-Vi bruger combine (c) til at sammensætte de forskellige variabler.
+Nu defineres de fælles forklarende variabler for de fleste modeller.
+Combine bruges (c) til at sammensætte de forskellige variabler.
 ```{r}
 base_features <- c(
   "temp_dry", "wind_speed", "nedbør_seneste_7_timer",
@@ -2042,8 +2040,8 @@ base_features <- c(
 ```
 
 Features for hvert tidspunkt
-Vi laver fire modeller med forskellige tidshorisonter.
-Vi bruger combine (c) til at kombinerer base_features, som vi defineret 
+Der laves fire modeller med forskellige tidshorisonter.
+Combine bruges (c) til at kombinerer base_features, som er defineret 
 foroven, samt billetsalg varaibel og mål i seneste 3 hjemmekampe. 
 I "flere måneder"-modellen definerer hvilke variabler der skal med via 
 combine (c).
@@ -2059,14 +2057,14 @@ features_list <- list(
 )
 ```
 
-Vi kører en Ridge-funktion, der vælger den bedste lambda. 
-Vi kører den for vores forskellige features for alle modeller, og den periode
+Der køres nu en Ridge-funktion, der vælger den bedste lambda. 
+Den kører for de forskellige features for alle modeller, og den periode
 som modellerne er i. 
-Vi laver designmatricer (defineret som x_train og x_test) og sikrer, at 
-vores test-matrice har samme kolonner som train-matricen. 
-Vi træner vores Ridge-model til af alpha = 0 for alle lambda-værdier i 
-lambda-grind. Vi beregner vores nøgletal (MSE, RMSE og R^2) på testdata for 
-hver lambda. Vores Ridge-regressionsmodel returnerer den lambda og de metrics,
+Nu laves der designmatricer (defineret som x_train og x_test) og sikrer, at 
+test-matrice har samme kolonner som train-matricen. 
+Ridge-model trænes til af alpha = 0 for alle lambda-værdier i 
+lambda-grind. Der laves nu beregning af nøgletal (MSE, RMSE og R^2) på testdata for 
+hver lambda. Ridge-regressionsmodel returnerer den lambda og de metrics,
 som giver den laveste MSE for den valgte periode. 
 ```{r}
 run_ridge_best_lambda <- function(features, periode) {
@@ -2100,14 +2098,14 @@ run_ridge_best_lambda <- function(features, periode) {
 }
 ```
 
-Vi kører en Lasso-funktion, der vælger den bedste lambda. 
-Vi kører den for vores forskellige features for alle modeller, og den periode
+Nu køres Lasso-funktion, der vælger den bedste lambda. 
+Den køres for de forskellige features for alle modeller, og den periode
 som modellerne er i. 
-Vi laver designmatricer (defineret som x_train og x_test) og sikrer, at 
-vores test-matrice har samme kolonner som train-matricen. 
-Vi træner vores Ridge-model til af alpha = 0 for alle lambda-værdier i 
-lambda-grind. Vi beregner vores nøgletal (MSE, RMSE og R^2) på testdata for 
-hver lambda. Vores Ridge-regressionsmodel returnerer den lambda og de metrics,
+Nu laves der designmatricer (defineret som x_train og x_test) og sikrer, at 
+test-matrice har samme kolonner som train-matricen. 
+Ridge-model trænes til af alpha = 0 for alle lambda-værdier i 
+lambda-grind. Der laves beregninger af nøgletal (MSE, RMSE og R^2) på testdata for 
+hver lambda. Ridge-regressionsmodel returnerer den lambda og de metrics,
 som giver den laveste MSE for den valgte periode. 
 ```{r}
 run_lasso_best_lambda <- function(features, periode) {
@@ -2141,11 +2139,11 @@ run_lasso_best_lambda <- function(features, periode) {
 }
 ```
 
-Vi kører nu alle periodemodellerne for Ridge- og Lasso- regression, og samler
+Nu køres alle periodemodellerne for Ridge- og Lasso- regression, og samler
 resulterne i en tabel.
 
-Vi laver et loop over alle perioder i features_listen, og kører 
-run_ridge_best_lambda. Og vi bruger bind_rows funktioenn til at binde resultaterne
+Der laves et loop over alle perioder i features_listen, og kører 
+run_ridge_best_lambda. Bind_rows funktioenn anvendes til at binde resultaterne
 i en tibble med den bedste lambda og de bedste metrics for hver periode. 
 ```{r}
 metrics_ridge_best <- bind_rows(
@@ -2155,8 +2153,8 @@ metrics_ridge_best <- bind_rows(
 )
 ```
 
-Vi laver et loop over alle perioder i features_listen, og kører 
-run_lasso_best_lambda. Og vi bruger bind_rows funktioenn til at binde resultaterne
+Der laves nu et loop over alle perioder i features_listen, og kører 
+run_lasso_best_lambda. Bind_rows funktionen anvendes til at binde resultaterne
 i en tibble med den bedste lambda og de bedste metrics for hver periode.
 ```{r}
 metrics_lasso_best <- bind_rows(
@@ -2166,7 +2164,7 @@ metrics_lasso_best <- bind_rows(
 )
 ```
 
-Vi ser resultaterne 
+Ser resultaterne
 ```{r}
 #view(metrics_ridge_best)
 ```
@@ -2175,11 +2173,11 @@ Vi ser resultaterne
 
 Metrics-funktion
 Funktion til metrics
-Vi opretter en funktion, som vi kalder "calc_metrics". 
-Obs er de observerede værdier (dvs faktiske tilskuertal)
+Funktion oprettes, som vi kalder "calc_metrics". 
+Obs. er de observerede værdier (dvs faktiske tilskuertal)
 pred er forudsagtes værdier fra vores model
-Efter det skriver vi formlerne til at beregne hhv. MSE, RMSE og R^2. 
-Til sidst returnerer vi en liste med alle tre metrics.
+Efter det sættes formlerne til at beregne hhv. MSE, RMSE og R^2. 
+Til sidst returneres en liste med alle tre metrics.
 ```{r}
 calc_metrics <- function(obs, pred) {
   mse <- mean((obs - pred)^2)
@@ -2192,11 +2190,11 @@ calc_metrics <- function(obs, pred) {
 ```
 
 Alignment-funktion
-Vi sørger for, at vores designmatrix (newx) får samme kolonner og rækkefælge som
-vores reference-matrix (refx).
-Vi opretter et tom matrix med det samme antal kolonner og kolonneanavne som refx.
-Vi finder kolonner, der findes i både designmatrixen og reference-matrixen. 
-Vi kopier værdier fra newx til de matchende kolonner til refx. Funktioenn 
+Der sørges for, at designmatrix (newx) får samme kolonner og rækkefælge som
+reference-matrix (refx).
+Nu oprettes et tom matrix med det samme antal kolonner og kolonneanavne som refx.
+Kolonner findes, der findes i både designmatrixen og reference-matrixen. 
+Værdier kopieres fra newx til de matchende kolonner til refx. Funktioenn 
 returnerer en matrix, hvor alle kolonner fra refx er til stede, og evt 
 manglende kolonner fra newx fyldes med "0". 
 Formålet med dette er at sikre, at train- og test- matricen har samme struktur,
@@ -2212,8 +2210,8 @@ align_matrix <- function(newx, refx) {
 ```
 
 Base features
-Vi definer de fælles forklarende variabler for de fleste modeller.
-Vi bruger combine (c) til at sammensætte de forskellige variabler.
+Nu defines de fælles forklarende variabler for de fleste modeller.
+Combine bruges (c) til at sammensætte de forskellige variabler.
 ```{r}
 base_features <- c(
   "temp_dry", "wind_speed", "nedbør_seneste_7_timer",
@@ -2229,8 +2227,8 @@ base_features <- c(
 ```
 
 Features for hvert periode
-Vi laver fire modeller med forskellige tidshorisonter.
-Vi bruger combine (c) til at kombinerer base_features, som vi defineret 
+Fire modeller laves nu med forskellige tidshorisonter.
+Combine bruges(c) til at kombinerer base_features, som defineres
 foroven, samt billetsalg varaibel og mål i seneste 3 hjemmekampe. 
 I "flere måneder"-modellen definerer hvilke variabler der skal med via 
 combine (c).
@@ -2247,14 +2245,14 @@ features_list <- list(
 ```
 
 Best Subset funktion
-Vi finder den model ved best subset regression.
-Vi udvælger outcome og features fra train- og testdata.
-Vi opretter designmatricer uden intercept og fjerner perfekt multikollinearitet,
+Finder den model ved best subset regression.
+Outcome udvælges og features fra train- og testdata.
+Der oprettes designmatricer uden intercept og fjerner perfekt multikollinearitet,
 det sker ved qrX og X_train + X_test.
-Vi tilpasser test-matrix, så den har samme kolonner som train.
-Vi tester alle kombinationer af op til max_vars variable (exhaustive search).
-Vi beregner MSE, RMSE og R² på testdata for hver model.
-Til sidst eturnerer koden den model, der giver lavest RMSE, 
+Test-matrix tilpasses, så den har samme kolonner som train.
+Alle kombinationer testet af op til max_vars variable (exhaustive search).
+Nu beregnes MSE, RMSE og R² på testdata for hver model.
+Til sidst returnerer koden den model, der giver lavest RMSE, 
 med antal variable og performance-metrics.
 
 ```{r}
@@ -2297,10 +2295,10 @@ run_best_subset <- function(features, tidspunkt, max_vars = 20, outcome_var = "t
 }
 ```
 
-Vi kører Best Subset Method for alle perioder
-Vi looper over alle tidspunkter/perioder i features_list. Vi kører 
+Best Subset Method køres for alle perioder
+Nu loopes der over alle tidspunkter/perioder i features_list. Næste trin er at køre 
 run_best_subset for hver periode med de tilhørende features. 
-Til sidst binder vi alle resultater sammen i en tibble via bind_rows.
+Til sidst bindes alle resultater sammen i en tibble via bind_rows.
 ```{r}
 results_subset <- bind_rows(
   lapply(names(features_list), function(tidspunkt) {
@@ -2314,7 +2312,7 @@ results_subset <- bind_rows(
 Samling af de forskellige modeller i en tibble
 
 Hjælpefunktion
-Vi opretter en tibble med kolonnerne over vores værdier (MSE, RMSE og R^2) for
+Der oprettes en tibble med kolonnerne over værdierne (MSE, RMSE og R^2) for
 alle modeller.
 ```{r}
 metrics_to_tibble <- function(metrics, model_name) {
@@ -2328,7 +2326,7 @@ metrics_to_tibble <- function(metrics, model_name) {
 ```
 
 Lineær regression 
-Vi bruger bind_rows til at danne metrics for hver lm model til en tibble
+Nu bruges bind_rows til at danne metrics for hver lm model til en tibble
 ```{r}
 metrics_lm <- bind_rows(
   metrics_to_tibble(metrics_3_dage, "3 dage før"),
@@ -2339,9 +2337,9 @@ metrics_lm <- bind_rows(
 ```
 
 Ridge regression
-Vi bruger transmute til at lave en ny tibble med kun de valgte kolonner. 
-Vi bruger paste("Ridge -") til at tilføje teksten "Ridge" foran perioden.
-Vi beholder MSE, RMSE og R^2 som performance-metrics. 
+Transmute anvendes til at lave en ny tibble med kun de valgte kolonner. 
+("Ridge -") bruges til at tilføje teksten "Ridge" foran perioden.
+MSE, RMSE og R^2 beholdes som performance-metrics. 
 ```{r}
 metrics_ridge <- metrics_ridge_best |> 
   transmute(
@@ -2353,9 +2351,9 @@ metrics_ridge <- metrics_ridge_best |>
 ```
 
 Lasso regression
-Vi bruger transmute til at lave en ny tibble med kun de valgte kolonner. 
-Vi bruger paste("Lasso -") til at tilføje teksten "Lasso" foran perioden.
-Vi beholder MSE, RMSE og R^2 som performance-metrics.
+Transmute anvendes til at lave en ny tibble med kun de valgte kolonner. 
+Paste("Lasso -") bruges til at tilføje teksten "Lasso" foran perioden.
+MSE, RMSE og R^2 beholdes som performance-metrics.
 ```{r}
 metrics_lasso <- metrics_lasso_best |> 
   transmute(
@@ -2367,9 +2365,9 @@ metrics_lasso <- metrics_lasso_best |>
 ```
 
 Best Subset 
-Vi bruger transmute til at lave en ny tibble med kun de valgte kolonner. 
-Vi bruger paste("Best subset-") til at tilføje teksten "Best subset" 
-foran perioden. Vi beholder MSE, RMSE og R^2 som performance-metrics. 
+Transmute anvendes til at lave en ny tibble med kun de valgte kolonner. 
+("Best subset-") anvendes til at tilføje teksten "Best subset" 
+foran perioden. MSE, RMSE og R^2 beholdes som performance-metrics. 
 ```{r}
 metrics_subset <- results_subset |> 
   transmute(
@@ -2380,8 +2378,8 @@ metrics_subset <- results_subset |>
   )
 ```
 
-Vi samler alle modeller i en tibble 
-Vi bruger bind_rows til at samle alle modeller, og bruger arrange til at 
+Alle modellerne samles i en tibble 
+Bind_rows anvendes til at samle alle modeller, og bruger arrange til at 
 sorter efter den bedste (laveste) MSE. 
 ```{r}
 #| label: lst-metrics 
@@ -2394,7 +2392,7 @@ metrics_samlet_alle <- bind_rows(
   arrange(MSE)
 ```
 
-Vi ser resultatet
+Ser resultatet
 ```{r}
 #| label: lst-print-metrics
 print(metrics_samlet_alle)
@@ -2402,12 +2400,12 @@ print(metrics_samlet_alle)
 
 ### Cross Validation 
 
-Vi kører K-fold CV for Lasso regressions modellen, da det er den model med den 
+K-fold CV køres for Lasso regressions modellen, da det er den model med den 
 laveste RMSE
 
-Vi laver en hjælpefunktion
+Der laves en hjælpefunktion
 Funktionen beregner RMSE mellem de observerede værdier og de forudsagte
-(predicted) værdier. Vi skriver formlen ind for R^2, sætter at na.rm = TRUE, 
+(predicted) værdier. Formlen skrives ind for R^2, sætter at na.rm = TRUE, 
 så alle NA-værdier bliver fjernet.
 ```{r}
 rmse <- function(obs, pred) {
@@ -2415,7 +2413,7 @@ rmse <- function(obs, pred) {
 }
 ```
 
-Vi laver en align_matrix
+Align_matrix laves
 Formålet med vores funktion her, er at tilpasse en matrix (newx) til strukturen
 i en reference-matrix (refx), så de har samme kolonner. 
 out <- matrix(0, nrow = nrow(newx), ncol = ncol(refx)) Opretter en ny 
@@ -2437,9 +2435,9 @@ align_matrix <- function(newx, refx) {
 }
 ```
 
-K-fold CV funktion for LASSO (da det er vores bedste model)
-Vi laver en funktion, som evaluerer, hvor godt vores Lasso-model forudsiger
-vores y-varibel: Antallet af tilskuere. 
+K-fold CV funktion for LASSO (da det er den bedste model)
+Nu laves en funktion, som evaluerer, hvor godt vores Lasso-model forudsiger
+y-variablen: Antallet af tilskuere. 
 ```{r}
 cv_lasso <- function(features, data, k = 5, lambda_grid) {
   
@@ -2495,19 +2493,19 @@ cv_lasso <- function(features, data, k = 5, lambda_grid) {
 ```
 
 Lambda-grid
-Vi opretter et numerisk sekvens, der starter ved 5 og slutter ved -3
+Nu oprettes et numerisk sekvens, der starter ved 5 og slutter ved -3
 Sekvensen længde indeholder 100 jævnt fordelte værdier. 
 Hver værdi i sekvsensen bruges som en eksponent med grundtal 10, dvs 10^
 ```{r}
 lambda_grid <- 10^seq(5, -3, length = 100)
 ```
-Vores lambda_grid bliver en vektor med 100 positive tal
+Lambda_grid bliver en vektor med 100 positive tal
 Værdierne går fra 100.000 (10^5) ned til 0.001 (10^-3)
 Tallene er logaritmisk fordelt, ikke lineært. 
 
 Feature-lister 
-Vi definer de fælles forklarende variabler for de fleste modeller.
-Vi bruger combine (c) til at sammensætte de forskellige variabler.
+De fælles forklarende variabler defineres for de fleste modeller.
+Combine bruges(c) til at sammensætte de forskellige variabler.
 ```{r}
 base_features <- c(
   "temp_dry", "wind_speed", "nedbør_seneste_7_timer",
@@ -2523,8 +2521,8 @@ base_features <- c(
 ```
 
 Features for hvert tidspunkt
-Vi laver fire modeller med forskellige tidshorisonter.
-Vi bruger combine (c) til at kombinerer base_features, som vi defineret 
+Der laves fire modeller med forskellige tidshorisonter.
+Combine bruges(c) til at kombinerer base_features, som er defineret 
 foroven, samt billetsalg varaibel og mål i seneste 3 hjemmekampe. 
 I "flere måneder"-modellen definerer hvilke variabler der skal med via 
 combine (c).
@@ -2540,22 +2538,22 @@ features_list <- list(
 )
 ```
 
-Vi kører LASSO K-fold CV
+LASSO K-fold CV køres 
 
-Vi bruger set.seed(1), fordi vi er gruppe #1
-k <- 5 betyder, at vi anvender 5-fold cross-validation
+Set.seed(1), bruges på baggrund af gruppe #1
+k <- 5 betyder, at der anvender 5-fold cross-validation
 ```{r}
 set.seed(1)
 k <- 5
 ```
 
-Vi kører LASSO-regression for hver feature periode. 
-Vi bruger map_dfr til at køre funktionen for hvert navn. Det samler alle 
+LASSO-regression køres for hver feature periode. 
+Map_dfr anvendes til at køre funktionen for hvert navn. Det samler alle 
 resultaterne i en data-frame. 
-Features_list vælger vores aktuelle feature sæt for hver model.
-Train_data er vores træningsdata.
+Features_list vælger de aktuelle feature sæt for hver model.
+Train_data er træningsdataen.
 k = k: Dette er 5-fold cross-validation.
-Lambda_grid er de lambda_værdier, der testes i vores LASSO-model
+Lambda_grid er de lambda_værdier, der testes i LASSO-modellen. 
 Resultatet gemmes i res(CV_MSE/RMSE).
 ```{r}
 cv_lasso_results <- map_dfr(names(features_list), function(name) {
@@ -2575,8 +2573,8 @@ cv_lasso_results <- map_dfr(names(features_list), function(name) {
 })
 ```
 
-LOOCV - "leave one out cross validation" kunne her foretages, men da vi har mange faktorer med 
-mange niveauer, dette vil medføre at fjernelse af en enkelt observation, at nogle
+LOOCV - "leave one out cross validation" kunne her foretages, men da der er mange faktorer med 
+mange niveauer, vil dette medføre at fjernelse af en enkelt observation, at nogle
 niveauer kun har en enkelt observation i træningsdatasættet, hvilket forhindrer dummy kodning.
 
 Bias variance trade-off
@@ -2584,31 +2582,30 @@ LOOCV har lav bias men høj varians, hvorfor hver model er nærmest identisk.
 5-fold giver en højere bias, men meget lavere varians, hvilket giver pålidelige vurderinger
 af modellens generaliserbarhed
 
-da vi allerede benytter 5-fold Cross validation på de lineære og lasso/ridge modeller, vil LOOCV
-ikke give ny og væsentlig information, hvorfor denne undlades.
+Der bliver allerede benyttet 5-fold Cross validation på de lineære og lasso/ridge modeller, vil LOOCV ikke give ny og væsentlig information, hvorfor denne undlades.
 
 ### Prædiktion 
 
-Vi bruger Lasso-modellen til prædiktion, da det er den model der har den 
-laveste RMSE. Vi kan estimere flere måneder før, men til 10,7 og 3 dage før
-kampen, er vi nødt til at lave et skøn baseret på best og worst case scenario.
+Lasso-modellen anvendes til prædiktion, da det er den model der har den 
+laveste RMSE. Modellen kan estimere flere måneder før, men til 10,7 og 3 dage før
+kampen, er man nødt til at lave et skøn baseret på best og worst case scenario.
 
 Næste hjemmebanekamp er runde 20 i mod Brøndby IF, som skal spilles søndag 
 den 15/02/2026 klokken 18:00. 
 Deres stadionkapacitet er 9.566 tilskuere.
 
-Vi kan lave en prædiktion  for flere måneder. Vi kender ikke variabler som 
-fx vejrdata og billetsalg endnu, men vi kan godt estimere et interval flere 
+Nu laves en prædiktion for flere måneder. Ikke alle variabler som 
+fx vejrdata og billetsalg kendes endnu, men man kan godt estimere et interval flere 
 måneder ude. RMSE er dog højere ved modellen for flere måneder ude, hvilket 
 betyder, at intervallet vil være større end fx modellen for 3 dage, hvilket 
 er den model med den laveste RMSE ift alle modeller. I teorien giver dette også
-rigtige god mening, fordi jo flere forklarende signifikante variabler vi har, 
-jo bedre vil vores resultat være. 
+rigtige god mening, fordi jo flere forklarende signifikante variabler der er, 
+jo bedre vil resultatet være. 
 
 Klargøring af data
-Det første vi skal gøre, er at forberede træningsdata til vores Lasso-nodel.
-Vi starter med at konverterer karakterer/numeriske værdier til faktorer.
-Hvis vi ikke gør dette, så vil modellen fejlagitg antage en numerisk orden.
+Det første der skal gøres, er at forberede træningsdata til Lasso-modellen.
+Nu konverteres karakterer/numeriske værdier til faktorer.
+Hvis dette ikke sker, så vil modellen fejlagtig antage en numerisk orden.
 ```{r}
 train_data <- train_data |> 
   mutate(
@@ -2618,7 +2615,7 @@ train_data <- train_data |>
   )
 ```
 
-Vi tjekker levels, og at vi har alt data med, som lige er blevet konverteret 
+Nu tjekkes levels, og at alt data er med, som lige er blevet konverteret 
 til faktorer.
 ```{r}
 levels(train_data$ugedag)
@@ -2627,8 +2624,8 @@ levels(train_data$sæson)
 ```
 
 Feature-lister 
-Vi definer de fælles forklarende variabler for de fleste modeller.
-Vi bruger combine (c) til at sammensætte de forskellige variabler.
+De forklarende variabler defineres for de fleste modeller.
+Combine bruges (c) til at sammensætte de forskellige variabler.
 ```{r}
 features_list <- list(
   "3 dage" = c(base_features, "d3_tilskuere", "mål_seneste_3_hjemme"),
@@ -2641,24 +2638,24 @@ features_list <- list(
 )
 ```
 
-Vi definer "features" som "flere måneder" fra features_list
+Nu defineres "features" som "flere måneder" fra features_list
 ```{r}
 features <- features_list[["flere måneder"]]
 ```
 
-Vi laver en Lasso-model på vores træningsdata
+Lasso-model laves på træningsdata
 
 Responsevariabel
-Her definer y_træningsdata som vores responsvariabel. Det bruges som mål i 
+Her defineres y_træningsdata som responsvariabel. Det bruges som mål i 
 vores Lasso-model. 
 ```{r}
 y_train <- train_data$tilskuere
 ```
 
 Designmatrix for træningsdata
-Vi designer en matrix, som kan bruges direkte af glmnet. 
-model.matrix omdanner vores forklarende variable til en numerisk designmatrix.
-Kategoriske variabler (dem vi lige har konverteret til faktorer, bliver dummy-
+Nu designes en matrix, som kan bruges direkte af glmnet. 
+model.matrix omdanner de forklarende variable til en numerisk designmatrix.
+Kategoriske variabler (dem som lige er konverteret til faktorer, bliver dummy-
 -kodet). 
 [,-1]: Fjerner intercept-kolonnen, og glmnet håndterer selv interceptet. 
 drop = FALSE: Sikrer, at output altid er en matrix (også ved en variabel).
@@ -2667,8 +2664,8 @@ X_train <- model.matrix(as.formula(paste("~", paste(features, collapse = "+"))),
 
 ```
 
-Vi definer vores lambda-grid
-Vi opretter 100 lambda-værdier mellem 10^3 og 10^-3. Dette bestemmer, hvor 
+Nu defineres lambda-grid
+Dernæst oprettes 100 lambda-værdier mellem 10^3 og 10^-3. Dette bestemmer, hvor 
 meget modellen straffes.
 ```{r}
 lambda_grid <- 10^seq(3, -3, length = 100)
@@ -2676,20 +2673,20 @@ lambda_grid <- 10^seq(3, -3, length = 100)
 
 Estimering af Lasso-modellen
 alpha = 1 : Lasso-regressionsmodel
-Modellen estimeres for alle lambda-værdier vi lige har sat. 
+Modellen estimeres for alle lambda-værdier som lige er blevet sat. 
 ```{r}
 lasso_fit <- glmnet(X_train, y_train, alpha = 1, lambda = lambda_grid)
 ```
 
 Cross-validation for bedste lambda
-Vi finder den bedste balance mellem bias, varians og overfitting.
+Nu skal den bedste balance findes mellem bias, varians og overfitting.
 ```{r}
 cv_fit <- cv.glmnet(X_train, y_train, alpha = 1, lambda = lambda_grid)
 best_lambda <- cv_fit$lambda.min
 ```
 
 Ny kamp data
-Vi laver en tibble, hvor vi manuelt skriver værdierne ind for vores model, som
+Nu laves en tibble, hvor der manuelt skrives værdierne ind for modellen, som
 skal forudsige tilskuereantallet flere måneder før. 
 De kategoriske variabler bliver sat som "factor, og de numeriske værdier er 
 forsat numeriske værdier.
@@ -2706,7 +2703,7 @@ ny_kamp_flere_måneder <- tibble(
 )
 ```
 
-Vi laver en designmatrix for den nye kampe, som matcher med vores oprindelige 
+Nu laves en designmatrix for den nye kampe, som matcher med vores oprindelige 
 designmatrix (X-train). 
 model.matrix() omdanner ny_kamp_flere_måneder til en numerisk matrix. 
 paste(features, collapse = "+"): Sikrer at samem features som i træningen bruges.
@@ -2716,9 +2713,9 @@ drop = FALSE: Bevarer matrix-format (selvom det kun er en række)
 X_new_raw <- model.matrix(as.formula(paste("~", paste(features, collapse = "+"))), ny_kamp_flere_måneder)[, -1, drop = FALSE]
 ```
 
-Vi opretter en tom matrix med samme struktur som træningsdata.
+Nu oprettes en tom matrix med samme struktur som træningsdata.
 X_train indeholder alle dummy-variabler, men den nye kamp har kun en konkret
-kombination af levels. Der vil derfor mangle kolonner. Vi opretter derfor nu
+kombination af levels. Der vil derfor mangle kolonner. Der oprettes derfor
 en nul-matrix med præcis samme kolonnenavne og rækkefølge som X_train. 
 
 ```{r}
@@ -2726,39 +2723,39 @@ X_new <- matrix(0, nrow = 1, ncol = ncol(X_train))
 colnames(X_new) <- colnames(X_train)
 ```
 
-Vi indsætter nu de relevante værdier. 
+Indsætter de relevante værdier. 
 intersect() finder de dummy-variabler, der findes i begge matricer. Kunn disse
-kolonner fyldes med 1'ere, resten forbliver 0. Hvis vores kolonner ikke matcher,
-så får vi enten en fejl eller en forkert prædiktion, derfor gør vi dette. 
+kolonner fyldes med 1'ere, resten forbliver 0. Hvis kolonnerne ikke matcher,
+så kommer der enten en fejl eller en forkert prædiktion, derfor gøres dette. 
 ```{r}
 common_cols <- intersect(colnames(X_train), colnames(X_new_raw))
 X_new[, common_cols] <- X_new_raw[, common_cols]
 ```
 
 Prediktion med Lasso
-Vi bruger predict til at beregne outputtet for vores model
+Predict bruges til at beregne outputtet for vores model
 lasso_fit er den allerede trænede Lasso-model, s = best_lambda vælger den lambda
 som giver den mindste cross validation (CV) fejl. 
 ```{r}
 tilskuere_pred <- predict(lasso_fit, s = best_lambda, newx = X_new)
 ```
 
-Vi konverterer resultatet til en numerisk værdi. 
+Resultatet konverteres til en numerisk værdi. 
 ```{r}
 tilskuere_pred <- as.numeric(tilskuere_pred)
 ```
 
-Vores estimat for kampdagen er 5214 tilskuere. Vi skal huske, at der kan være
-fejl i begge retninger. Vi bruger nu vores cross validation RMSE fra tidligere,
+Estimatet for kampdagen er 5214 tilskuere. Det skal huskes, at der kan være
+fejl i begge retninger. Nu bruges cross validation RMSE fra tidligere,
 til at finde det rigtige interval for tilskuereantallet for VFFs næste hjemmekamp.
 ```{r}
 tilskuere_pred
 ```
 
-Vi vælger hvilken RMSE vi vil bruge. 
-Vi tager CV-RMSE fra cross-validation, som vi har lavet tidligere.
-Vi bruger filter til at isolere tidspunktet til "Flere måneder før"-modellen.
-Vi bruger efterfølgende pull-funktionen til at trække CV-RMSE ud. 
+Der vælges nu hvilken RMSE der skal bruges. 
+Nu tages CV-RMSE fra cross-validation, som der blev lavet tidligere.
+Filter bruges til at isolere tidspunktet til "Flere måneder før"-modellen.
+Efterfølgende bruges pull-funktionen til at trække CV-RMSE ud. 
 ```{r}
 #| label: lst-rmse-kamp
 rmse_value <- cv_lasso_results %>%
@@ -2766,13 +2763,13 @@ rmse_value <- cv_lasso_results %>%
   pull(CV_RMSE)
 ```
 
-Vi beregner vores interval
+Ny beregnes vores interval
 ```{r}
 lower <- tilskuere_pred - rmse_value
 upper <- tilskuere_pred + rmse_value
 ```
 
-Vi printer resultatet
+Nu printes resultatet
 ```{r}
 #| label: lst-estimat-kamp
 message("Forventet tilskuertal for næste kamp:\n")
@@ -2780,10 +2777,10 @@ message(round(tilskuere_pred), "±", round(rmse_value), "\n")
 message("Interval: ", round(lower), "til", round(upper), "\n")
 ```
 
-Vi kan se at vores interval ligger mellem 4663 til 7452. Dvs vi kan ud fra vores model konkludere, at for VFFs næste hjemmekamp imod Brøndby IF vil der være et sted mellem 3808 til 6621 tilskuere. 
+Vores interval ligger mellem 4663 til 7452. Modellen konkludere, at for VFFs næste hjemmekamp imod Brøndby IF vil der være et sted mellem 3808 til 6621 tilskuere. 
 
-Feature sets for alle tidshorisonter. vi definerer nu de forskellige features til de forskellige tidspunkter før kampdag
-flere måneder er en langsigtet prediction, hvorfor der er flere ukendte faktorer de 3 andre er mere kortsigtede, hvorfor der også er mere data til rådighed jo nærmere vi er på kampstart.
+Feature sets for alle tidshorisonter. Nu defineres de forskellige features til de forskellige tidspunkter før kampdag
+flere måneder er en langsigtet prediction, hvorfor der er flere ukendte faktorer de 3 andre er mere kortsigtede, hvorfor der også er mere data til rådighed jo nærmere på kampstart.
 ```{r}
 feature_sets <- list(
   "flere_måneder" = c(
@@ -2896,19 +2893,19 @@ predict_tilskuere <- function(tidspunkt, ny_kamp, lasso_models) {
 }
 ```
 
-vi definerer en lambda grid som kontrollerer hvor kraftigt vi straffer store koeffecienter for lasso, som bruges til at undgå overfitting.
+Nu defineres en lambda grid som kontrollerer hvor kraftigt vi straffer store koeffecienter for lasso, som bruges til at undgå overfitting.
 ```{r}
 lambda_grid <- 10^seq(3, -3, length = 100)
 ```
 
-Vi træner en lasso model pr tidshorisont, med de features som passer til den. lapply sikrer, at vi laver alle modeller uden at gentage kode.
+Nu trænes en lasso model pr tidshorisont, med de features som passer til den. lapply sikrer, at Nu laves alle modeller uden at gentage kode.
 ```{r}
 lasso_models <- lapply(names(feature_sets), function(tidspunkt) {
   train_lasso_model(train_data = train_data, features = feature_sets[[tidspunkt]], lambda_grid = lambda_grid)
 })
 ```
 
-Vi navngiver modellerne med tidshorisonterne så vi kan bruge den igen senere.
+Navngivning af modellerne med tidshorisonterne, så vi kan bruge den igen senere.
 ```{r}
 names(lasso_models) <- names(feature_sets)
 ```
@@ -2932,7 +2929,7 @@ evaluer_kamp <- function(kamp_id, data, lasso_models, feature_sets) {
 }
 ```
 
-vi kan nu teste vores modeller med forskellige tidshorisonter ved at indtaste kamp id fra en af kampene i datasættet, indtast blot et tal mellem 1-204.og se hvordan de varierer på de forskellige tidspunkter før kampstart.
+Nu testes vores modeller med forskellige tidshorisonter ved at indtaste kamp id fra en af kampene i datasættet, indtast blot et tal mellem 1-204.og se hvordan de varierer på de forskellige tidspunkter før kampstart.
 ```{r}
 kamp_id <- 120
 eval_data <- evaluer_kamp(kamp_id, train_data, lasso_models, feature_sets)
@@ -2943,7 +2940,7 @@ print(eval_data)
 ```
 
 Plot prædiktioner vs. faktisk tilskuertal.
-vi visualiserer sammenligningen af modellens prædiktioner med det faktiske tilskuertal.
+Nu visualiseres sammenligningen af modellens prædiktioner med det faktiske tilskuertal.
 ```{r}
 faktisk <- train_data$tilskuere[kamp_id]
 ```
